@@ -329,6 +329,27 @@
         <!-- TAB 4: Export & Reports -->
         <div class="tab-content" id="tab-export">
           <div class="export-grid">
+            <div class="card export-card" style="border-left: 4px solid var(--primary);">
+              <div class="export-card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="21" y1="10" x2="3" y2="10"></line>
+                  <line x1="21" y1="6" x2="3" y2="6"></line>
+                  <line x1="21" y1="14" x2="3" y2="14"></line>
+                  <line x1="21" y1="18" x2="3" y2="18"></line>
+                </svg>
+              </div>
+              <h3 class="export-card-title">Heading-Structured Text Content</h3>
+              <p class="export-card-desc">Exports all pages' readable text organized strictly by headings (H1–H6) in pure plain text. No images, no media clutter, only clean structured content.</p>
+              <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 10px;">
+                <button id="btnExportHeadingTxt" class="btn btn-primary export-btn">
+                  Download Headings + Content (.TXT)
+                </button>
+                <button id="btnExportHeadingMd" class="btn btn-secondary export-btn">
+                  Download Markdown by Headings (.MD)
+                </button>
+              </div>
+            </div>
+
             <div class="card export-card">
               <div class="export-card-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -339,10 +360,10 @@
                   <polyline points="10 9 9 9 8 9"></polyline>
                 </svg>
               </div>
-              <h3 class="export-card-title">Human-Readable TXT Report</h3>
-              <p class="export-card-desc">Detailed ASCII audit report formatted page-by-page with metadata, headings, link counts, images, and content previews.</p>
+              <h3 class="export-card-title">Comprehensive Audit Report (.TXT)</h3>
+              <p class="export-card-desc">Detailed ASCII audit report formatted page-by-page with SEO metadata, headings, link counts, images, and previews.</p>
               <button id="btnExportTxt" class="btn btn-primary export-btn">
-                Download .TXT Report
+                Download Full Audit .TXT
               </button>
             </div>
 

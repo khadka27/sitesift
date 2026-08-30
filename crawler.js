@@ -177,6 +177,8 @@ class CrawlerDashboard {
       duplicateCanonicalContainer: document.getElementById('duplicateCanonicalContainer'),
 
       // Export Buttons
+      btnExportHeadingTxt: document.getElementById('btnExportHeadingTxt'),
+      btnExportHeadingMd: document.getElementById('btnExportHeadingMd'),
       btnExportTxt: document.getElementById('btnExportTxt'),
       btnExportCsv: document.getElementById('btnExportCsv'),
       btnExportJson: document.getElementById('btnExportJson'),
@@ -329,6 +331,12 @@ class CrawlerDashboard {
     });
 
     // Exports
+    if (this.dom.btnExportHeadingTxt) {
+      this.dom.btnExportHeadingTxt.addEventListener('click', () => this._handleExport('heading-txt'));
+    }
+    if (this.dom.btnExportHeadingMd) {
+      this.dom.btnExportHeadingMd.addEventListener('click', () => this._handleExport('heading-md'));
+    }
     this.dom.btnExportTxt.addEventListener('click', () => this._handleExport('txt'));
     this.dom.btnExportCsv.addEventListener('click', () => this._handleExport('csv'));
     this.dom.btnExportJson.addEventListener('click', () => this._handleExport('json'));
@@ -1167,7 +1175,7 @@ class CrawlerDashboard {
     this.dom.modalWordCount.textContent = page.wordCount ?? 0;
     this.dom.modalCharCount.textContent = page.characterCount ?? 0;
     this.dom.modalParaCount.textContent = page.paragraphCount ?? 0;
-    this.dom.modalContentText.textContent = page.content?.cleanText || '(No text content extracted)';
+    this.dom.modalContentText.textContent = page.content?.headingStructuredText || page.content?.cleanText || '(No text content extracted)';
 
     // Links Tab
     const internal = page.links?.internal || [];
@@ -1237,7 +1245,13 @@ class CrawlerDashboard {
       pages: this.crawledPages
     };
 
-    if (format === 'txt') {
+    if (format === 'heading-txt') {
+      const content = Exporter.generateHeadingContentTxtReport(crawlExportData);
+      Exporter.download(`${baseFilename}_headings_content.txt`, content, 'text/plain');
+    } else if (format === 'heading-md') {
+      const content = Exporter.generateHeadingContentMarkdownReport(crawlExportData);
+      Exporter.download(`${baseFilename}_headings_content.md`, content, 'text/markdown');
+    } else if (format === 'txt') {
       const content = Exporter.generateTxtReport(crawlExportData);
       Exporter.download(`${baseFilename}_report.txt`, content, 'text/plain');
     } else if (format === 'csv') {

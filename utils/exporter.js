@@ -5,6 +5,127 @@
 
 export class Exporter {
   /**
+   * Generates a clean, text-only content report organized strictly by headings (H1-H6).
+   * Contains NO images, NO links lists, NO meta tables — only the heading structure and readable text of all pages.
+   * 
+   * @param {Object} crawlData 
+   * @returns {string} Plain text report
+   */
+  static generateHeadingContentTxtReport(crawlData) {
+    const { siteUrl, pages = [], timestamp = new Date().toISOString() } = crawlData;
+    const divider = '='.repeat(70);
+    const subDivider = '-'.repeat(50);
+
+    const validPages = pages.filter(p => p.status === 'success' || p.httpStatus === 200 || p.content?.cleanText);
+
+    const lines = [
+      divider,
+      'SITE DATA CRAWLER — HEADING-STRUCTURED TEXT CONTENT REPORT',
+      `Website:      ${siteUrl || 'N/A'}`,
+      `Date:         ${timestamp.replace('T', ' ').slice(0, 19)}`,
+      `Total Pages:  ${validPages.length}`,
+      'Format:       Pure text content grouped under respective headings (No images/media)',
+      divider,
+      ''
+    ];
+
+    validPages.forEach((page, index) => {
+      lines.push(divider);
+      lines.push(`PAGE ${index + 1}: ${page.title || 'Untitled Page'}`);
+      lines.push(`URL: ${page.url}`);
+      lines.push(`Word Count: ${page.wordCount ?? 0} words | Paragraphs: ${page.paragraphCount ?? 0}`);
+      lines.push(divider);
+      lines.push('');
+
+      const sections = page.content?.headingSections || [];
+
+      if (sections.length > 0) {
+        sections.forEach(sec => {
+          const levelTag = sec.level ? `[${sec.level.toUpperCase()}]` : '[HEADING]';
+          lines.push(`${levelTag} ${sec.heading}`);
+          lines.push(subDivider);
+          
+          if (sec.paragraphs && sec.paragraphs.length > 0) {
+            sec.paragraphs.forEach(p => {
+              lines.push(p);
+              lines.push('');
+            });
+          } else {
+            lines.push('(No text content under this heading)');
+            lines.push('');
+          }
+        });
+      } else if (page.content?.cleanText) {
+        // Fallback if no specific headings detected
+        lines.push('[CONTENT]');
+        lines.push(subDivider);
+        lines.push(page.content.cleanText);
+        lines.push('');
+      } else {
+        lines.push('(No readable text content extracted from this page)');
+        lines.push('');
+      }
+
+      lines.push('');
+    });
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Generates a Markdown document (.md) organized by heading levels (#, ##, ###).
+   * 
+   * @param {Object} crawlData 
+   * @returns {string} Markdown string
+   */
+  static generateHeadingContentMarkdownReport(crawlData) {
+    const { siteUrl, pages = [], timestamp = new Date().toISOString() } = crawlData;
+    const validPages = pages.filter(p => p.status === 'success' || p.httpStatus === 200 || p.content?.cleanText);
+
+    const lines = [
+      `# Site Content Export: ${siteUrl || 'Website'}`,
+      '',
+      `> **Crawled Date:** ${timestamp.replace('T', ' ').slice(0, 19)}  `,
+      `> **Total Pages:** ${validPages.length}  `,
+      `> **Extraction:** Pure text content organized by heading hierarchy (No images)`,
+      '',
+      '---',
+      ''
+    ];
+
+    validPages.forEach((page, index) => {
+      lines.push(`## Page ${index + 1}: ${page.title || page.url}`);
+      lines.push(`**URL:** [${page.url}](${page.url}) | **Word Count:** ${page.wordCount ?? 0}`);
+      lines.push('');
+
+      const sections = page.content?.headingSections || [];
+
+      if (sections.length > 0) {
+        sections.forEach(sec => {
+          const levelNum = sec.level?.startsWith('h') ? Math.min(parseInt(sec.level.slice(1), 10) + 2, 6) : 3;
+          const prefix = '#'.repeat(levelNum);
+          lines.push(`${prefix} ${sec.heading}`);
+          lines.push('');
+
+          if (sec.paragraphs && sec.paragraphs.length > 0) {
+            sec.paragraphs.forEach(p => {
+              lines.push(`${p}\n`);
+            });
+          }
+        });
+      } else if (page.content?.cleanText) {
+        lines.push(page.content.cleanText);
+        lines.push('');
+      }
+
+      lines.push('---');
+      lines.push('');
+    });
+
+    return lines.join('\n');
+  }
+
+  /**
    * Generates a clean, human-readable TXT audit report.
    * 
    * @param {Object} crawlData 

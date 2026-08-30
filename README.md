@@ -110,10 +110,12 @@ site-data-crawler/
 - Grouped duplicate detection for duplicate page titles, meta descriptions, and canonical tags.
 
 ### 5. Multi-Format Exports
-- **TXT:** Human-readable page-by-page ASCII report.
-- **CSV:** Spreadsheet-ready SEO summary table.
-- **JSON:** Complete raw structured crawl dataset.
-- **XML Sitemap:** Valid search-engine-ready `sitemap.xml` generated from 200 OK pages.
+- **Heading-Structured Text (.TXT):** Pure text content of all crawled pages organized strictly by headings (H1–H6). Completely excludes images, media, and links clutter.
+- **Markdown by Headings (.MD):** Structured `#`, `##`, `###` Markdown report of all pages.
+- **Comprehensive Audit Report (.TXT):** Detailed page-by-page ASCII report with SEO metadata, headings, link counts, and previews.
+- **Spreadsheet CSV (.CSV):** Spreadsheet-ready SEO summary table.
+- **Structured JSON (.JSON):** Complete raw structured crawl dataset.
+- **XML Sitemap (.XML):** Valid search-engine-ready `sitemap.xml` generated from 200 OK pages.
 
 ---
 

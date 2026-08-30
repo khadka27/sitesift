@@ -175,7 +175,7 @@ export class HtmlParser {
       'script', 'style', 'noscript', 'iframe', 'svg', 'canvas',
       'nav', 'footer', 'header', 'aside',
       '[hidden]', '[aria-hidden="true"]',
-      'dialog', 'template',
+      'dialog', 'template', 'button', 'select', 'form',
       '.cookie-banner', '#cookie-banner', '[id*="cookie" i]', '[class*="cookie" i]',
       '[id*="consent" i]', '[class*="consent" i]', '[id*="gdpr" i]', '[class*="gdpr" i]'
     ];
@@ -191,12 +191,15 @@ export class HtmlParser {
       }
     }
 
-    // Extract paragraphs and text
+    // Extract heading-structured sections and content
+    const headingExtraction = this._extractHeadingSections(body);
+
+    // Extract raw paragraphs
     const paragraphs = [];
     const pNodes = body.querySelectorAll('p, article, section, div > p');
     for (const p of pNodes) {
       const text = p.textContent?.replace(/\s+/g, ' ').trim();
-      if (text && text.length > 20 && !paragraphs.includes(text)) {
+      if (text && text.length > 15 && !paragraphs.includes(text)) {
         paragraphs.push(text);
       }
     }
@@ -216,7 +219,79 @@ export class HtmlParser {
       wordCount,
       characterCount,
       paragraphCount,
-      paragraphs
+      paragraphs,
+      headingSections: headingExtraction.sections,
+      headingStructuredText: headingExtraction.formattedText
+    };
+  }
+
+  /**
+   * Extracts text grouped under each heading (H1 through H6) in document order.
+   * Excludes images, links, and styling; focuses purely on readable content per heading.
+   * 
+   * @param {HTMLElement} body 
+   * @returns {{ sections: Array<{ level: string, heading: string, paragraphs: Array<string> }>, formattedText: string }}
+   */
+  static _extractHeadingSections(body) {
+    const sections = [];
+    let currentSection = {
+      level: 'h1',
+      heading: 'Introduction / Overview',
+      paragraphs: []
+    };
+
+    const elements = body.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre');
+    const seenTexts = new Set();
+
+    for (const el of elements) {
+      const tagName = el.tagName.toLowerCase();
+
+      if (/^h[1-6]$/.test(tagName)) {
+        const headingText = el.textContent?.replace(/\s+/g, ' ').trim();
+        if (headingText) {
+          // If current section has accumulated content or is a real heading, push it
+          if (currentSection.paragraphs.length > 0 || currentSection.heading !== 'Introduction / Overview') {
+            sections.push(currentSection);
+          }
+          currentSection = {
+            level: tagName,
+            heading: headingText,
+            paragraphs: []
+          };
+        }
+      } else if (['p', 'li', 'blockquote', 'pre'].includes(tagName)) {
+        // Skip elements that contain child block elements to avoid duplicate text
+        if (el.querySelector('p, li, blockquote, h1, h2, h3, h4, h5, h6')) {
+          continue;
+        }
+
+        const text = el.textContent?.replace(/\s+/g, ' ').trim();
+        if (text && text.length > 5 && !seenTexts.has(text)) {
+          seenTexts.add(text);
+          currentSection.paragraphs.push(text);
+        }
+      }
+    }
+
+    if (currentSection.paragraphs.length > 0 || (currentSection.heading !== 'Introduction / Overview' && sections.length === 0)) {
+      sections.push(currentSection);
+    }
+
+    // Format into clean plain text / markdown
+    const formattedLines = [];
+    for (const sec of sections) {
+      const levelNum = sec.level.startsWith('h') ? parseInt(sec.level.slice(1), 10) : 2;
+      const prefix = '#'.repeat(levelNum);
+      formattedLines.push(`${prefix} ${sec.heading}\n`);
+      for (const p of sec.paragraphs) {
+        formattedLines.push(`${p}\n`);
+      }
+      formattedLines.push('');
+    }
+
+    return {
+      sections,
+      formattedText: formattedLines.join('\n').trim()
     };
   }
 
