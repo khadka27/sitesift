@@ -79,9 +79,22 @@ class CrawlerDashboard {
         this.startCrawl();
       }
     } else {
-      const lastUrl = await getLastUrl();
-      if (lastUrl) {
-        this.dom.targetUrlInput.value = lastUrl;
+      let detectedUrl = '';
+      try {
+        const tabs = await chrome.tabs.query({ lastFocusedWindow: true });
+        const webTab = tabs.find(t => t.url && /^https?:\/\//i.test(t.url) && !t.url.includes(chrome.runtime.id));
+        if (webTab && webTab.url) {
+          detectedUrl = webTab.url;
+        }
+      } catch {}
+
+      if (detectedUrl) {
+        this.dom.targetUrlInput.value = detectedUrl;
+      } else {
+        const lastUrl = await getLastUrl();
+        if (lastUrl) {
+          this.dom.targetUrlInput.value = lastUrl;
+        }
       }
     }
 

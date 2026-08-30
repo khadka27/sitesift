@@ -31,40 +31,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chkExtractImages = document.getElementById('chkExtractImages');
   const chkExtractStructuredData = document.getElementById('chkExtractStructuredData');
 
+  const activeTabIndicator = document.getElementById('activeTabIndicator');
+  const activeTabLabel = document.getElementById('activeTabLabel');
+
   // Load Settings & Last URL
   const settings = await getSettings();
   const lastUrl = await getLastUrl();
 
-  // Populate URL
-  if (lastUrl) {
-    inputUrl.value = lastUrl;
-  }
-
   // Populate Form from settings
   populateForm(settings);
 
-  // Auto-detect Active Tab URL if input is empty
-  try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs && tabs[0] && tabs[0].url && /^https?:\/\//i.test(tabs[0].url)) {
-      if (!inputUrl.value) {
-        inputUrl.value = tabs[0].url;
+  // Auto-fetch and display current active tab URL
+  await fetchAndDisplayActiveTab(lastUrl);
+
+  async function fetchAndDisplayActiveTab(fallbackUrl = '') {
+    try {
+      // Query active tab in current or last focused window
+      let tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tabs || tabs.length === 0 || !tabs[0].url || !/^https?:\/\//i.test(tabs[0].url)) {
+        tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
       }
+
+      if (tabs && tabs[0] && tabs[0].url && /^https?:\/\//i.test(tabs[0].url)) {
+        const activeUrl = tabs[0].url;
+        inputUrl.value = activeUrl;
+        
+        const titleSnippet = tabs[0].title ? ` (${tabs[0].title.slice(0, 28)}...)` : '';
+        if (activeTabLabel && activeTabIndicator) {
+          activeTabLabel.textContent = `Auto-detected active tab${titleSnippet}`;
+          activeTabIndicator.classList.remove('hidden');
+        }
+        await saveLastUrl(activeUrl);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Site Data Crawler] Could not auto-detect active tab:', err);
     }
-  } catch {}
+
+    // Fallback to last visited URL if active tab is not a website
+    if (fallbackUrl) {
+      inputUrl.value = fallbackUrl;
+      if (activeTabIndicator) activeTabIndicator.classList.add('hidden');
+    }
+    return false;
+  }
 
   // Event Listeners
   btnCurrentTab.addEventListener('click', async () => {
-    try {
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tabs && tabs[0] && tabs[0].url && /^https?:\/\//i.test(tabs[0].url)) {
-        inputUrl.value = tabs[0].url;
-        showStatus('Loaded current tab URL', 'info');
-      } else {
-        showStatus('Active tab is not a valid HTTP/HTTPS web page', 'error');
-      }
-    } catch {
-      showStatus('Unable to access active tab', 'error');
+    const success = await fetchAndDisplayActiveTab();
+    if (success) {
+      showStatus('Loaded current tab URL', 'success');
+    } else {
+      showStatus('Active tab is not a valid HTTP/HTTPS web page', 'error');
     }
   });
 
