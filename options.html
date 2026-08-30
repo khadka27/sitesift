@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Data Crawler - Options & Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <!-- Header -->
+    <header class="options-header">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="Logo" width="32" height="32">
+        <div>
+          <h1 class="page-title">Site Data Crawler Settings</h1>
+          <p class="page-subtitle">Configure crawler rate limits, extraction scopes, and URL filtering rules</p>
+        </div>
+      </div>
+      <button id="btnSaveTop" class="btn btn-primary">Save Changes</button>
+    </header>
+
+    <main class="options-main">
+      <!-- Status Notice -->
+      <div id="statusAlert" class="alert-banner hidden"></div>
+
+      <!-- Section 1: Crawler Performance & Rate Limiting -->
+      <section class="card settings-section">
+        <h2 class="section-title">Crawler Performance & Rate Limiting</h2>
+        <p class="section-desc">Tune crawling speed and concurrency to ensure polite and reliable extraction.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="optCrawlMode" class="form-label">Default Crawl Mode</label>
+            <select id="optCrawlMode" class="form-select">
+              <option value="sitemap_and_links">Sitemap + Discovered Internal Links</option>
+              <option value="sitemap">Sitemap Only</option>
+              <option value="links_only">Links Crawl Only (No Sitemap)</option>
+            </select>
+            <span class="field-help">Determines discovery behavior when initiating crawls.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="optMaxPages" class="form-label">Default Max Pages Limit</label>
+            <input type="number" id="optMaxPages" class="form-input" min="1" max="10000" value="100">
+            <span class="field-help">Maximum number of pages to crawl per session.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="optCrawlDelay" class="form-label">Crawl Delay (ms)</label>
+            <input type="number" id="optCrawlDelay" class="form-input" min="0" max="60000" step="50" value="500">
+            <span class="field-help">Pause between individual requests to prevent server overload.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="optConcurrency" class="form-label">Worker Concurrency</label>
+            <input type="number" id="optConcurrency" class="form-input" min="1" max="10" value="3">
+            <span class="field-help">Number of parallel fetch requests (recommended: 2-5).</span>
+          </div>
+
+          <div class="form-group">
+            <label for="optTimeout" class="form-label">Request Timeout (ms)</label>
+            <input type="number" id="optTimeout" class="form-input" min="1000" max="60000" step="1000" value="15000">
+            <span class="field-help">Abort requests taking longer than this duration.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Scope & URL Filtering -->
+      <section class="card settings-section">
+        <h2 class="section-title">Scope & URL Filtering Rules</h2>
+        <p class="section-desc">Define domain boundaries and URL exclusions to avoid unnecessary downloads.</p>
+
+        <div class="checkbox-list">
+          <label class="checkbox-row">
+            <input type="checkbox" id="optSameDomain" checked>
+            <div>
+              <strong>Same-domain only</strong>
+              <p class="checkbox-desc">Restricts crawling strictly to the entered hostname.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optIncludeSubdomains">
+            <div>
+              <strong>Include subdomains</strong>
+              <p class="checkbox-desc">Allows crawling across subdomains (e.g. blog.example.com and docs.example.com).</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optFollowLinks" checked>
+            <div>
+              <strong>Follow discovered internal links</strong>
+              <p class="checkbox-desc">Recursively crawls links found within fetched HTML pages.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optIgnoreQueryParams" checked>
+            <div>
+              <strong>Strip tracking query parameters</strong>
+              <p class="checkbox-desc">Removes utm_*, fbclid, and gclid parameters to prevent duplicate crawls.</p>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="optExcludePatterns" class="form-label">URL Exclusion Patterns (One per line)</label>
+          <textarea id="optExcludePatterns" class="form-textarea" rows="4" placeholder="*.pdf&#10;/wp-admin/*&#10;/cart/*&#10;/login"></textarea>
+          <span class="field-help">Wildcard (*) or regex expressions (/pattern/) to skip matching URLs.</span>
+        </div>
+      </section>
+
+      <!-- Section 3: Extraction Elements -->
+      <section class="card settings-section">
+        <h2 class="section-title">Content & SEO Extraction Features</h2>
+        <p class="section-desc">Choose which data points to extract during the crawl.</p>
+
+        <div class="checkbox-grid-options">
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractMetadata" checked>
+            <div>
+              <strong>SEO & Social Metadata</strong>
+              <p class="checkbox-desc">Extract title, description, canonical, robots, Open Graph, and Twitter tags.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractHeadings" checked>
+            <div>
+              <strong>Heading Hierarchy (H1-H6)</strong>
+              <p class="checkbox-desc">Collect heading text and structural levels.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractLinks" checked>
+            <div>
+              <strong>Internal & External Links</strong>
+              <p class="checkbox-desc">Collect anchor text, target attributes, and rel flags.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractImages" checked>
+            <div>
+              <strong>Image Metadata & Alt Tags</strong>
+              <p class="checkbox-desc">Collect image URLs, alt attributes, and dimensions.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractStructuredData" checked>
+            <div>
+              <strong>Structured Data (JSON-LD, Microdata)</strong>
+              <p class="checkbox-desc">Extract schema.org entities and JSON-LD payloads.</p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Section 4: Storage & Maintenance -->
+      <section class="card settings-section">
+        <h2 class="section-title">Storage & Maintenance</h2>
+        <p class="section-desc">Manage local storage and reset configurations.</p>
+
+        <div class="storage-actions-row">
+          <div class="storage-info">
+            <span>Storage In Use: <strong id="storageUsageVal">Calculating...</strong></span>
+          </div>
+
+          <div class="btn-group">
+            <button id="btnClearCache" class="btn btn-outline">Clear Crawl Cache</button>
+            <button id="btnResetDefaults" class="btn btn-danger-outline">Reset to Defaults</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: Architecture & Limitations Guide -->
+      <section class="card settings-section info-card">
+        <h2 class="section-title">Browser Capabilities & Compliance Notice</h2>
+        <div class="info-content">
+          <p><strong>Local Processing:</strong> All crawling, DOM parsing, and reporting executes 100% locally within your browser. No crawled content is transmitted to external servers.</p>
+          <p><strong>CORS & Security Boundaries:</strong> Manifest V3 extensions with host permissions can fetch public HTTP/HTTPS web pages directly. Sites requiring login credentials, CAPTCHAs, or Cloudflare verification challenges must be accessed through your active browser tab.</p>
+          <p><strong>JavaScript Rendering:</strong> Standard asynchronous fetch requests retrieve static HTML responses. For client-side Single Page Applications (SPAs), utilize the <em>JavaScript Rendering Tool</em> on the crawler dashboard.</p>
+        </div>
+      </section>
+
+      <!-- Bottom Save Action -->
+      <div class="bottom-actions-bar">
+        <button id="btnSaveBottom" class="btn btn-primary btn-lg">Save Settings</button>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
