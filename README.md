@@ -95,8 +95,16 @@ site-data-crawler/
 - Strict deduplication of normalized URLs.
 - Skips non-HTML binary files (`.pdf`, `.zip`, `.jpg`, `.mp4`, etc.) and non-crawlable protocols (`mailto:`, `tel:`, `javascript:`).
 
-### 3. Comprehensive Data Extraction
+### 3. Comprehensive Data Extraction & Scope Rules
 - **Basic Info:** Final URL, HTTP status code, Content-Type, Language, Response latency.
+- **Scope & Extra Pages Rules:** Auto-prioritizes and extracts **Terms and Conditions**, **Legal Pages** (Privacy Policy, Disclaimers, Cookie Policy, Legal Notice, Imprint, Refund Policy), and **Contact Us / About Us** pages.
+- **Page Type Classification:** Automatic category detection (`Terms & Conditions`, `Privacy Policy`, `Legal / Policy`, `Contact Us`, `About Us`, `Docs / Help`, `Blog / News`, `Standard Page`).
+- **Contact & Compliance Extraction:**
+  - **Emails:** Extracted from `mailto:` links and text body.
+  - **Phone Numbers:** Extracted from `tel:` links and phone patterns.
+  - **Social Media Profiles:** Detects Twitter/X, LinkedIn, Facebook, Instagram, YouTube, GitHub, and TikTok profiles.
+  - **Legal Policies:** Direct URL resolution for Terms of Service, Privacy Policies, Cookie notices, and Disclaimers.
+  - **Copyright Notices:** Automatically parses copyright statements (e.g. `© 2026 Company`).
 - **SEO Metadata:** `<title>`, meta description, keywords, canonical link, robots directives (`noindex`, `nofollow`), viewport, author, generator.
 - **Social Tags:** Open Graph (`og:title`, `og:description`, `og:image`, `og:type`, etc.) and Twitter Cards (`twitter:card`, `twitter:title`, etc.).
 - **Headings Hierarchy:** Complete H1–H6 structural tree with level and text.
@@ -105,8 +113,9 @@ site-data-crawler/
 - **Images:** Image URLs, `alt` text validation, dimensions, and lazy-loading attributes.
 - **Structured Data:** JSON-LD schema objects with automatic Schema.org entity detection (`Article`, `Product`, `Organization`, `LocalBusiness`, `FAQPage`, `BreadcrumbList`, etc.), Microdata, and RDFa.
 
-### 4. SEO Summary & Duplicate Auditing
+### 4. SEO Summary & Compliance Auditing
 - Real-time audit metrics: Missing Titles, Missing Meta Descriptions, Missing H1s, Multiple H1s, Missing Canonical, Broken Links, Thin Content (<200 words).
+- **Legal & Contact Compliance Card:** Monitors detection of Terms & Conditions, Privacy Policy, Contact Us page, and total count of discovered emails, phone numbers, and social links.
 - Grouped duplicate detection for duplicate page titles, meta descriptions, and canonical tags.
 
 ### 5. Multi-Format Exports

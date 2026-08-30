@@ -15,9 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const optSameDomain = document.getElementById('optSameDomain');
   const optIncludeSubdomains = document.getElementById('optIncludeSubdomains');
   const optFollowLinks = document.getElementById('optFollowLinks');
+  const optPrioritizeLegal = document.getElementById('optPrioritizeLegal');
+  const optPrioritizeContact = document.getElementById('optPrioritizeContact');
   const optIgnoreQueryParams = document.getElementById('optIgnoreQueryParams');
   const optExcludePatterns = document.getElementById('optExcludePatterns');
 
+  const optExtractContact = document.getElementById('optExtractContact');
+  const optExtractLegal = document.getElementById('optExtractLegal');
+  const optClassifyPageTypes = document.getElementById('optClassifyPageTypes');
   const optExtractMetadata = document.getElementById('optExtractMetadata');
   const optExtractHeadings = document.getElementById('optExtractHeadings');
   const optExtractLinks = document.getElementById('optExtractLinks');
@@ -68,11 +73,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     optSameDomain.checked = s.sameDomainOnly !== false;
     optIncludeSubdomains.checked = !!s.includeSubdomains;
     optFollowLinks.checked = s.followDiscoveredLinks !== false;
+    optPrioritizeLegal.checked = s.prioritizeLegalPages !== false;
+    optPrioritizeContact.checked = s.prioritizeContactPages !== false;
     optIgnoreQueryParams.checked = s.ignoreQueryParams !== false;
 
     const patterns = Array.isArray(s.excludePatterns) ? s.excludePatterns.join('\n') : '';
     optExcludePatterns.value = patterns;
 
+    optExtractContact.checked = s.extractContactInfo !== false;
+    optExtractLegal.checked = s.extractLegalInfo !== false;
+    optClassifyPageTypes.checked = s.classifyPageTypes !== false;
     optExtractMetadata.checked = s.extractMetadata !== false;
     optExtractHeadings.checked = s.extractHeadings !== false;
     optExtractLinks.checked = s.extractLinks !== false;
@@ -92,8 +102,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       sameDomainOnly: optSameDomain.checked,
       includeSubdomains: optIncludeSubdomains.checked,
       followDiscoveredLinks: optFollowLinks.checked,
+      prioritizeLegalPages: optPrioritizeLegal.checked,
+      prioritizeContactPages: optPrioritizeContact.checked,
       ignoreQueryParams: optIgnoreQueryParams.checked,
       excludePatterns: rawPatterns,
+      extractContactInfo: optExtractContact.checked,
+      extractLegalInfo: optExtractLegal.checked,
+      classifyPageTypes: optClassifyPageTypes.checked,
       extractMetadata: optExtractMetadata.checked,
       extractHeadings: optExtractHeadings.checked,
       extractLinks: optExtractLinks.checked,

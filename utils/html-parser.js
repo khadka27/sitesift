@@ -3,7 +3,7 @@
  * Extracts metadata, SEO tags, headings, readable content, links, images, and structured data.
  */
 
-import { resolveUrl, getHostname, isAllowedDomain } from './url-utils.js';
+import { resolveUrl, getHostname, isAllowedDomain, classifyUrlType } from './url-utils.js';
 
 export class HtmlParser {
   /**
@@ -17,6 +17,9 @@ export class HtmlParser {
    * @param {boolean} options.extractMetadata 
    * @param {boolean} options.extractHeadings 
    * @param {boolean} options.extractStructuredData 
+   * @param {boolean} options.extractContactInfo 
+   * @param {boolean} options.extractLegalInfo 
+   * @param {boolean} options.classifyPageTypes 
    * @param {boolean} options.includeSubdomains 
    * @param {boolean} options.sameDomainOnly 
    * @returns {Object} Extracted data object
@@ -28,6 +31,9 @@ export class HtmlParser {
       extractMetadata: true,
       extractHeadings: true,
       extractStructuredData: true,
+      extractContactInfo: true,
+      extractLegalInfo: true,
+      classifyPageTypes: true,
       includeSubdomains: false,
       sameDomainOnly: true,
       ...options
@@ -63,6 +69,15 @@ export class HtmlParser {
     // 7. Structured Data
     const structuredData = opts.extractStructuredData ? this._extractStructuredData(doc) : { jsonLd: [], schemaTypes: [], microdata: [], rdfa: [] };
 
+    // 8. Contact Information Extraction
+    const contactInfo = opts.extractContactInfo !== false ? this._extractContactInfo(doc, effectiveBaseUrl) : { emails: [], phones: [], socials: [], addresses: [], hasContactForm: false };
+
+    // 9. Legal & Policy Information Extraction
+    const legalInfo = opts.extractLegalInfo !== false ? this._extractLegalInfo(doc, effectiveBaseUrl) : { termsUrl: '', privacyUrl: '', cookieUrl: '', disclaimerUrl: '', copyright: '', hasTerms: false, hasPrivacy: false };
+
+    // 10. Page Classification
+    const classification = opts.classifyPageTypes !== false ? this._classifyPage(doc, pageUrl, title, headings.list) : { type: 'standard', label: 'Standard Page', badgeClass: 'badge-neutral' };
+
     return {
       url: pageUrl,
       title: title || metadata.ogTitle || metadata.twitterTitle || '',
@@ -73,6 +88,11 @@ export class HtmlParser {
       links,
       images,
       structuredData,
+      contactInfo,
+      legalInfo,
+      pageType: classification.type,
+      pageTypeLabel: classification.label,
+      pageTypeBadgeClass: classification.badgeClass,
       characterCount: content.characterCount,
       wordCount: content.wordCount,
       paragraphCount: content.paragraphCount
@@ -485,5 +505,163 @@ export class HtmlParser {
         this._findSchemaTypes(obj[key], typeSet);
       }
     }
+  }
+
+  /**
+   * Extracts contact information: emails, phone numbers, social links, contact forms, and addresses.
+   */
+  static _extractContactInfo(doc, baseUrl) {
+    const emails = new Set();
+    const phones = new Set();
+    const socials = [];
+    const seenSocials = new Set();
+
+    // 1. Mailto links
+    const mailtoLinks = doc.querySelectorAll('a[href^="mailto:" i]');
+    for (const a of mailtoLinks) {
+      const href = a.getAttribute('href') || '';
+      const email = href.replace(/^mailto:/i, '').split('?')[0].trim().toLowerCase();
+      if (email && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+        emails.add(email);
+      }
+    }
+
+    // 2. Tel links
+    const telLinks = doc.querySelectorAll('a[href^="tel:" i]');
+    for (const a of telLinks) {
+      const href = a.getAttribute('href') || '';
+      const phone = href.replace(/^tel:/i, '').split('?')[0].trim();
+      if (phone && phone.length >= 6) {
+        phones.add(phone);
+      }
+    }
+
+    // 3. Scan page text for raw emails
+    const pageText = doc.body ? doc.body.textContent || '' : '';
+    const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g;
+    let match;
+    while ((match = emailRegex.exec(pageText)) !== null) {
+      const e = match[0].toLowerCase();
+      if (!/\.(png|jpg|jpeg|gif|webp|svg|css|js|woff|woff2)$/i.test(e) && !e.includes('example.com') && !e.includes('yourdomain')) {
+        emails.add(e);
+      }
+    }
+
+    // 4. Social Media Links
+    const socialPlatforms = [
+      { name: 'Twitter / X', regex: /(?:https?:)?\/\/(?:www\.)?(twitter\.com|x\.com)\/([a-zA-Z0-9_]{1,30})/i },
+      { name: 'LinkedIn', regex: /(?:https?:)?\/\/(?:www\.)?linkedin\.com\/(?:company|in)\/([a-zA-Z0-9_-]+)/i },
+      { name: 'Facebook', regex: /(?:https?:)?\/\/(?:www\.)?facebook\.com\/([a-zA-Z0-9._-]+)/i },
+      { name: 'Instagram', regex: /(?:https?:)?\/\/(?:www\.)?instagram\.com\/([a-zA-Z0-9_.-]+)/i },
+      { name: 'YouTube', regex: /(?:https?:)?\/\/(?:www\.)?youtube\.com\/(?:@|channel\/|c\/)?([a-zA-Z0-9_-]+)/i },
+      { name: 'GitHub', regex: /(?:https?:)?\/\/(?:www\.)?github\.com\/([a-zA-Z0-9_-]+)/i },
+      { name: 'TikTok', regex: /(?:https?:)?\/\/(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9_.-]+)/i }
+    ];
+
+    const allAnchors = doc.querySelectorAll('a[href]');
+    for (const a of allAnchors) {
+      const rawHref = a.getAttribute('href') || '';
+      const resolved = resolveUrl(rawHref, baseUrl);
+      if (!resolved) continue;
+
+      for (const platform of socialPlatforms) {
+        if (platform.regex.test(resolved) && !seenSocials.has(resolved)) {
+          seenSocials.add(resolved);
+          socials.push({
+            platform: platform.name,
+            url: resolved,
+            handle: resolved.match(platform.regex)?.[1] || ''
+          });
+        }
+      }
+    }
+
+    // 5. Contact Form Detection
+    const contactForm = !!doc.querySelector('form[action*="contact" i], form[id*="contact" i], form[class*="contact" i], form input[type="email"], form textarea');
+
+    return {
+      emails: Array.from(emails).slice(0, 20),
+      phones: Array.from(phones).slice(0, 20),
+      socials: socials.slice(0, 20),
+      hasContactForm: contactForm,
+      hasContactDetails: emails.size > 0 || phones.size > 0 || socials.length > 0 || contactForm
+    };
+  }
+
+  /**
+   * Extracts legal and policy links and copyright information.
+   */
+  static _extractLegalInfo(doc, baseUrl) {
+    let termsUrl = '';
+    let privacyUrl = '';
+    let cookieUrl = '';
+    let disclaimerUrl = '';
+    let copyright = '';
+
+    const allAnchors = doc.querySelectorAll('a[href]');
+    for (const a of allAnchors) {
+      const text = a.textContent?.trim() || '';
+      const rawHref = a.getAttribute('href') || '';
+      const hrefLower = rawHref.toLowerCase();
+      const textLower = text.toLowerCase();
+
+      // Terms of Service / Terms & Conditions
+      if (!termsUrl && (
+        /terms\s*(and|&)\s*conditions|terms\s*of\s*(service|use)|user\s*agreement|\btos\b/i.test(textLower) ||
+        /(terms[-_ ]?(of[-_ ]?service|and[-_ ]?conditions|of[-_ ]?use)?|\btos\b)/i.test(hrefLower)
+      )) {
+        termsUrl = resolveUrl(rawHref, baseUrl) || rawHref;
+      }
+
+      // Privacy Policy
+      if (!privacyUrl && (
+        /privacy\s*(policy|notice)|data\s*protection|\bgdpr\b/i.test(textLower) ||
+        /privacy[-_ ]?(policy|notice)?|\bgdpr\b/i.test(hrefLower)
+      )) {
+        privacyUrl = resolveUrl(rawHref, baseUrl) || rawHref;
+      }
+
+      // Cookie Policy
+      if (!cookieUrl && (
+        /cookie\s*(policy|preferences|settings)/i.test(textLower) ||
+        /cookie[-_ ]?(policy|settings)/i.test(hrefLower)
+      )) {
+        cookieUrl = resolveUrl(rawHref, baseUrl) || rawHref;
+      }
+
+      // Disclaimer / Legal Notice / Imprint / Refund
+      if (!disclaimerUrl && (
+        /disclaimer|legal\s*notice|imprint|impressum|refund\s*policy/i.test(textLower) ||
+        /disclaimer|imprint|impressum|refund[-_ ]?policy/i.test(hrefLower)
+      )) {
+        disclaimerUrl = resolveUrl(rawHref, baseUrl) || rawHref;
+      }
+    }
+
+    // Copyright statement extraction from footer or body text
+    const footerText = doc.querySelector('footer, .footer, #footer, [class*="footer" i], [id*="footer" i]')?.textContent || doc.body?.textContent || '';
+    const copyrightMatch = footerText.match(/(?:©|\bcopyright\b|\(c\))\s*(?:(?:20\d{2}|19\d{2})[-–\s]*(?:20\d{2})?)?\s*([^.\n\r<]{3,80})/i);
+    if (copyrightMatch) {
+      copyright = copyrightMatch[0].replace(/\s+/g, ' ').trim();
+    }
+
+    return {
+      termsUrl,
+      privacyUrl,
+      cookieUrl,
+      disclaimerUrl,
+      copyright,
+      hasTerms: !!termsUrl,
+      hasPrivacy: !!privacyUrl,
+      hasLegalInfo: !!(termsUrl || privacyUrl || cookieUrl || disclaimerUrl || copyright)
+    };
+  }
+
+  /**
+   * Classifies page type using URL signals, Title, Headings, and content indicators.
+   */
+  static _classifyPage(doc, pageUrl, title, headingsList = []) {
+    const headingTexts = Array.isArray(headingsList) ? headingsList.map(h => h.text || h) : [];
+    return classifyUrlType(pageUrl, title, headingTexts);
   }
 }

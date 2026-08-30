@@ -17,6 +17,11 @@ export const DEFAULT_SETTINGS = {
   extractMetadata: true,
   extractHeadings: true,
   extractStructuredData: true,
+  extractContactInfo: true,
+  extractLegalInfo: true,
+  classifyPageTypes: true,
+  prioritizeLegalPages: true,
+  prioritizeContactPages: true,
   ignoreQueryParams: true,
   excludePatterns: [
     '*.pdf', '*.zip', '*.jpg', '*.png', '*.gif',

@@ -319,3 +319,149 @@ export function isAllowedByRobots(urlString, disallows = [], allows = []) {
     return true;
   }
 }
+
+/**
+ * Checks if a given URL represents a Terms & Conditions or Legal Policy page.
+ * 
+ * @param {string} urlString 
+ * @returns {boolean}
+ */
+export function isLegalPageUrl(urlString) {
+  if (!urlString || typeof urlString !== 'string') return false;
+  try {
+    const parsed = new URL(urlString);
+    const path = parsed.pathname.toLowerCase();
+    const legalKeywords = [
+      'term', 'terms', 'tos', 'terms-of-service', 'terms-and-conditions', 'terms-of-use',
+      'privacy', 'privacy-policy', 'cookie-policy', 'cookies', 'gdpr', 'ccpa', 'data-protection',
+      'legal', 'disclaimer', 'imprint', 'impressum', 'compliance', 'refund', 'refund-policy',
+      'return-policy', 'cancellation', 'acceptable-use', 'security-policy', 'eula', 'user-agreement'
+    ];
+
+    const segments = path.split('/').filter(Boolean);
+    return segments.some(seg => legalKeywords.some(kw => seg === kw || seg.includes(kw)));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Checks if a given URL represents a Contact Us or About Us page.
+ * 
+ * @param {string} urlString 
+ * @returns {boolean}
+ */
+export function isContactPageUrl(urlString) {
+  if (!urlString || typeof urlString !== 'string') return false;
+  try {
+    const parsed = new URL(urlString);
+    const path = parsed.pathname.toLowerCase();
+    const contactKeywords = [
+      'contact', 'contact-us', 'contactus', 'contact_us', 'get-in-touch', 'reach-us',
+      'support', 'help-center', 'feedback', 'about', 'about-us', 'aboutus', 'our-story',
+      'who-we-are', 'company', 'team', 'leadership', 'locations'
+    ];
+
+    const segments = path.split('/').filter(Boolean);
+    return segments.some(seg => contactKeywords.some(kw => seg === kw || seg.includes(kw)));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Categorizes a page URL and its content into a canonical page type.
+ * 
+ * @param {string} urlString 
+ * @param {string} title 
+ * @param {Array<string>} headings 
+ * @returns {{ type: string, label: string, badgeClass: string }}
+ */
+export function classifyUrlType(urlString, title = '', headings = []) {
+  const result = {
+    type: 'standard',
+    label: 'Standard Page',
+    badgeClass: 'badge-neutral'
+  };
+
+  if (!urlString) return result;
+
+  try {
+    const parsed = new URL(urlString);
+    const path = parsed.pathname.toLowerCase();
+    const cleanTitle = (title || '').toLowerCase();
+    const headingText = Array.isArray(headings) ? headings.join(' ').toLowerCase() : '';
+    const combinedSignals = `${path} ${cleanTitle} ${headingText}`;
+
+    // 1. Terms & Conditions / Terms of Service
+    if (
+      /(terms[-_ ]?(of[-_ ]?service|and[-_ ]?conditions|of[-_ ]?use)?|\btos\b|user[-_ ]agreement|eula|conditions[-_ ]of[-_ ]use)/i.test(path) ||
+      /(terms\s*(and|&)\s*conditions|terms\s*of\s*(service|use)|user\s*agreement)/i.test(cleanTitle)
+    ) {
+      return { type: 'terms', label: 'Terms & Conditions', badgeClass: 'badge-terms' };
+    }
+
+    // 2. Privacy Policy & Cookie Policy
+    if (
+      /(privacy[-_ ]?(policy|notice)?|cookie[-_ ]?(policy|preferences)?|\bgdpr\b|\bccpa\b|data[-_ ]protection)/i.test(path) ||
+      /(privacy\s*(policy|notice)|cookie\s*policy|data\s*protection)/i.test(cleanTitle)
+    ) {
+      return { type: 'privacy', label: 'Privacy Policy', badgeClass: 'badge-privacy' };
+    }
+
+    // 3. Other Legal / Compliance / Disclaimer / Refund
+    if (
+      /(legal|disclaimer|imprint|impressum|compliance|refund[-_ ]?(policy)?|return[-_ ]?(policy)?|security[-_ ]policy)/i.test(path) ||
+      /(legal\s*notice|disclaimer|refund\s*policy|cancellation\s*policy|imprint)/i.test(cleanTitle)
+    ) {
+      return { type: 'legal', label: 'Legal / Policy', badgeClass: 'badge-legal' };
+    }
+
+    // 4. Contact Us / Support
+    if (
+      /(contact[-_ ]?(us)?|get[-_ ]in[-_ ]touch|reach[-_ ]us|customer[-_ ]service|support[-_ ]center)/i.test(path) ||
+      /(contact\s*us|get\s*in\s*touch|contact\s*support)/i.test(cleanTitle)
+    ) {
+      return { type: 'contact', label: 'Contact Us', badgeClass: 'badge-contact' };
+    }
+
+    // 5. About Us / Company / Team
+    if (
+      /(about[-_ ]?(us)?|our[-_ ]story|who[-_ ]we[-_ ]are|company[-_ ]overview|leadership|team)/i.test(path) ||
+      /(about\s*us|our\s*story|who\s*we\s*are|leadership\s*team)/i.test(cleanTitle)
+    ) {
+      return { type: 'about', label: 'About Us', badgeClass: 'badge-about' };
+    }
+
+    // 6. Documentation / Help / FAQ
+    if (
+      /(docs|documentation|api[-_ ]?reference|help|faq|knowledge[-_ ]?base)/i.test(path) ||
+      /(documentation|knowledge\s*base|faq\s*page|frequently\s*asked)/i.test(cleanTitle)
+    ) {
+      return { type: 'docs', label: 'Docs / Help', badgeClass: 'badge-docs' };
+    }
+
+    // 7. Blog / News / Article
+    if (
+      /(blog|news|articles?|posts?|insights|journal)/i.test(path) ||
+      /(blog\s*post|latest\s*news|press\s*release)/i.test(cleanTitle)
+    ) {
+      return { type: 'blog', label: 'Blog / News', badgeClass: 'badge-blog' };
+    }
+
+    // Fallback signals on headings/content if root or subpage
+    if (/terms\s*(and|&)\s*conditions|terms\s*of\s*service/i.test(headingText)) {
+      return { type: 'terms', label: 'Terms & Conditions', badgeClass: 'badge-terms' };
+    }
+    if (/privacy\s*policy/i.test(headingText)) {
+      return { type: 'privacy', label: 'Privacy Policy', badgeClass: 'badge-privacy' };
+    }
+    if (/contact\s*us/i.test(headingText)) {
+      return { type: 'contact', label: 'Contact Us', badgeClass: 'badge-contact' };
+    }
+
+    return result;
+  } catch {
+    return result;
+  }
+}

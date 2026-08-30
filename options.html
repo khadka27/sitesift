@@ -69,7 +69,7 @@
       <!-- Section 2: Scope & URL Filtering -->
       <section class="card settings-section">
         <h2 class="section-title">Scope & URL Filtering Rules</h2>
-        <p class="section-desc">Define domain boundaries and URL exclusions to avoid unnecessary downloads.</p>
+        <p class="section-desc">Define domain boundaries, page prioritization, and URL exclusions.</p>
 
         <div class="checkbox-list">
           <label class="checkbox-row">
@@ -97,6 +97,22 @@
           </label>
 
           <label class="checkbox-row">
+            <input type="checkbox" id="optPrioritizeLegal" checked>
+            <div>
+              <strong>Prioritize Terms & Legal Policy Pages</strong>
+              <p class="checkbox-desc">Prioritizes discovered terms of service, privacy policies, disclaimers, and cookie notices in the queue.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optPrioritizeContact" checked>
+            <div>
+              <strong>Prioritize Contact & About Pages</strong>
+              <p class="checkbox-desc">Prioritizes contact pages, support hubs, and company about pages.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
             <input type="checkbox" id="optIgnoreQueryParams" checked>
             <div>
               <strong>Strip tracking query parameters</strong>
@@ -118,6 +134,30 @@
         <p class="section-desc">Choose which data points to extract during the crawl.</p>
 
         <div class="checkbox-grid-options">
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractContact" checked>
+            <div>
+              <strong>Contact Details & Social Profiles</strong>
+              <p class="checkbox-desc">Extract emails, phone numbers, contact form flags, and social media handles (LinkedIn, Twitter/X, GitHub, etc.).</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optExtractLegal" checked>
+            <div>
+              <strong>Legal Policies & Copyright Info</strong>
+              <p class="checkbox-desc">Detect Terms of Service, Privacy Policy URLs, Cookie policies, and copyright statements.</p>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="optClassifyPageTypes" checked>
+            <div>
+              <strong>Automatic Page Type Categorization</strong>
+              <p class="checkbox-desc">Classify pages into Terms, Privacy, Legal, Contact, About, Blog, Docs, or Standard.</p>
+            </div>
+          </label>
+
           <label class="checkbox-row">
             <input type="checkbox" id="optExtractMetadata" checked>
             <div>

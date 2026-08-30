@@ -160,12 +160,29 @@ export class Exporter {
         lines.push(`Error:           ${page.error}`);
       }
       lines.push(`Title:           ${page.title || '(None)'}`);
+      lines.push(`Page Type:       ${page.pageTypeLabel || 'Standard Page'}`);
       lines.push(`Meta Description:${page.metadata?.description || '(None)'}`);
       lines.push(`Canonical:       ${page.metadata?.canonical || '(None)'}`);
       lines.push(`Robots Meta:     ${page.metadata?.robots || '(None)'}`);
       lines.push(`Language:        ${page.language || '(None)'}`);
       lines.push(`Word Count:      ${page.wordCount ?? 0} (Characters: ${page.characterCount ?? 0}, Paragraphs: ${page.paragraphCount ?? 0})`);
       lines.push(`Response Time:   ${page.responseTimeMs ? `${page.responseTimeMs} ms` : 'N/A'}`);
+
+      // Contact & Legal Info
+      const emails = page.contactInfo?.emails || [];
+      const phones = page.contactInfo?.phones || [];
+      const socials = (page.contactInfo?.socials || []).map(s => `${s.platform}: ${s.url}`);
+      const legal = page.legalInfo || {};
+
+      if (emails.length > 0 || phones.length > 0 || socials.length > 0 || legal.hasLegalInfo) {
+        lines.push('Contact & Legal Data:');
+        if (emails.length > 0) lines.push(`  - Emails:      ${emails.join(', ')}`);
+        if (phones.length > 0) lines.push(`  - Phones:      ${phones.join(', ')}`);
+        if (socials.length > 0) lines.push(`  - Socials:     ${socials.join(' | ')}`);
+        if (legal.termsUrl) lines.push(`  - Terms URL:   ${legal.termsUrl}`);
+        if (legal.privacyUrl) lines.push(`  - Privacy URL: ${legal.privacyUrl}`);
+        if (legal.copyright) lines.push(`  - Copyright:   ${legal.copyright}`);
+      }
 
       // Headings
       const h1s = page.headings?.byLevel?.h1 || [];
@@ -177,6 +194,9 @@ export class Exporter {
         lines.push('  (None)');
       }
 
+      // Headings
+      const h1List = page.headings?.byLevel?.h1 || [];
+      const h2List = page.headings?.byLevel?.h2 || [];
       lines.push(`H2 (${h2s.length}):`);
       if (h2s.length > 0) {
         h2s.forEach(h => lines.push(`  - ${h}`));
@@ -248,12 +268,19 @@ export class Exporter {
       'URL',
       'HTTP Status',
       'Status Label',
+      'Page Type',
       'Title',
       'Meta Description',
       'Meta Keywords',
       'Canonical URL',
       'Robots Meta',
       'Language',
+      'Contact Emails',
+      'Contact Phones',
+      'Social Media Profiles',
+      'Terms URL',
+      'Privacy Policy URL',
+      'Copyright Statement',
       'Word Count',
       'Character Count',
       'Paragraph Count',
@@ -283,17 +310,28 @@ export class Exporter {
       const images = page.images || [];
       const missingAltCount = images.filter(img => !img.hasAlt).length;
       const schemaTypes = page.structuredData?.schemaTypes || [];
+      const emails = (page.contactInfo?.emails || []).join('; ');
+      const phones = (page.contactInfo?.phones || []).join('; ');
+      const socials = (page.contactInfo?.socials || []).map(s => `${s.platform}: ${s.url}`).join('; ');
+      const legal = page.legalInfo || {};
 
       const row = [
         escapeCsv(page.url),
         escapeCsv(page.httpStatus || ''),
         escapeCsv(page.status || ''),
+        escapeCsv(page.pageTypeLabel || 'Standard Page'),
         escapeCsv(page.title || ''),
         escapeCsv(page.metadata?.description || ''),
         escapeCsv(page.metadata?.keywords || ''),
         escapeCsv(page.metadata?.canonical || ''),
         escapeCsv(page.metadata?.robots || ''),
         escapeCsv(page.language || ''),
+        escapeCsv(emails),
+        escapeCsv(phones),
+        escapeCsv(socials),
+        escapeCsv(legal.termsUrl || ''),
+        escapeCsv(legal.privacyUrl || ''),
+        escapeCsv(legal.copyright || ''),
         escapeCsv(page.wordCount ?? 0),
         escapeCsv(page.characterCount ?? 0),
         escapeCsv(page.paragraphCount ?? 0),

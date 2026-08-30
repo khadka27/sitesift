@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chkSameDomain = document.getElementById('chkSameDomain');
   const chkIncludeSubdomains = document.getElementById('chkIncludeSubdomains');
   const chkFollowLinks = document.getElementById('chkFollowLinks');
+  const chkPrioritizeLegal = document.getElementById('chkPrioritizeLegal');
+  const chkPrioritizeContact = document.getElementById('chkPrioritizeContact');
+  const chkExtractContact = document.getElementById('chkExtractContact');
+  const chkExtractLegal = document.getElementById('chkExtractLegal');
+  const chkClassifyPageTypes = document.getElementById('chkClassifyPageTypes');
   const chkExtractMetadata = document.getElementById('chkExtractMetadata');
   const chkExtractHeadings = document.getElementById('chkExtractHeadings');
   const chkExtractLinks = document.getElementById('chkExtractLinks');
@@ -121,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Checkbox & Select listeners for instant persistence
   const allInputs = [
     selectCrawlMode, chkSameDomain, chkIncludeSubdomains, chkFollowLinks,
+    chkPrioritizeLegal, chkPrioritizeContact, chkExtractContact, chkExtractLegal, chkClassifyPageTypes,
     chkExtractMetadata, chkExtractHeadings, chkExtractLinks, chkExtractImages, chkExtractStructuredData
   ];
   allInputs.forEach(input => {
@@ -224,6 +230,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     chkSameDomain.checked = s.sameDomainOnly !== false;
     chkIncludeSubdomains.checked = !!s.includeSubdomains;
     chkFollowLinks.checked = s.followDiscoveredLinks !== false;
+    chkPrioritizeLegal.checked = s.prioritizeLegalPages !== false;
+    chkPrioritizeContact.checked = s.prioritizeContactPages !== false;
+    chkExtractContact.checked = s.extractContactInfo !== false;
+    chkExtractLegal.checked = s.extractLegalInfo !== false;
+    chkClassifyPageTypes.checked = s.classifyPageTypes !== false;
     chkExtractMetadata.checked = s.extractMetadata !== false;
     chkExtractHeadings.checked = s.extractHeadings !== false;
     chkExtractLinks.checked = s.extractLinks !== false;
@@ -263,6 +274,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       sameDomainOnly: chkSameDomain.checked,
       includeSubdomains: chkIncludeSubdomains.checked,
       followDiscoveredLinks: chkFollowLinks.checked,
+      prioritizeLegalPages: chkPrioritizeLegal.checked,
+      prioritizeContactPages: chkPrioritizeContact.checked,
+      extractContactInfo: chkExtractContact.checked,
+      extractLegalInfo: chkExtractLegal.checked,
+      classifyPageTypes: chkClassifyPageTypes.checked,
       extractMetadata: chkExtractMetadata.checked,
       extractHeadings: chkExtractHeadings.checked,
       extractLinks: chkExtractLinks.checked,

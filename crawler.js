@@ -14,7 +14,10 @@ import {
   isAllowedDomain,
   isNonHtmlResource,
   matchesExcludePattern,
-  isAllowedByRobots
+  isAllowedByRobots,
+  isLegalPageUrl,
+  isContactPageUrl,
+  classifyUrlType
 } from './utils/url-utils.js';
 
 class CrawlerDashboard {
@@ -52,6 +55,7 @@ class CrawlerDashboard {
     this.sortAsc = true;
     this.searchTerm = '';
     this.statusFilter = 'all';
+    this.pageTypeFilter = 'all';
     this.httpCodeFilter = 'all';
 
     // Modal Inspection
@@ -151,6 +155,7 @@ class CrawlerDashboard {
       // Table & Toolbar
       tableSearchInput: document.getElementById('tableSearchInput'),
       filterStatus: document.getElementById('filterStatus'),
+      filterPageType: document.getElementById('filterPageType'),
       filterHttpCode: document.getElementById('filterHttpCode'),
       pageSizeSelect: document.getElementById('pageSizeSelect'),
       urlsTable: document.getElementById('urlsTable'),
@@ -183,6 +188,12 @@ class CrawlerDashboard {
       seoBrokenLinks: document.getElementById('seoBrokenLinks'),
       seoSchemaPages: document.getElementById('seoSchemaPages'),
       seoSchemaTypesList: document.getElementById('seoSchemaTypesList'),
+      auditTermsStatus: document.getElementById('auditTermsStatus'),
+      auditPrivacyStatus: document.getElementById('auditPrivacyStatus'),
+      auditContactStatus: document.getElementById('auditContactStatus'),
+      auditEmailsCount: document.getElementById('auditEmailsCount'),
+      auditPhonesCount: document.getElementById('auditPhonesCount'),
+      auditSocialsCount: document.getElementById('auditSocialsCount'),
 
       // Duplicates Container
       duplicateTitlesContainer: document.getElementById('duplicateTitlesContainer'),
@@ -215,6 +226,19 @@ class CrawlerDashboard {
       modalHeadingsCount: document.getElementById('modalHeadingsCount'),
       modalLinksCount: document.getElementById('modalLinksCount'),
       modalImagesCount: document.getElementById('modalImagesCount'),
+      modalContactLegalCount: document.getElementById('modalContactLegalCount'),
+      modalOverviewPageType: document.getElementById('modalOverviewPageType'),
+      modalPageTypeBadge: document.getElementById('modalPageTypeBadge'),
+      modalPageTypeDesc: document.getElementById('modalPageTypeDesc'),
+      modalLegalLinksList: document.getElementById('modalLegalLinksList'),
+      modalEmailsCount: document.getElementById('modalEmailsCount'),
+      modalEmailsList: document.getElementById('modalEmailsList'),
+      modalPhonesCount: document.getElementById('modalPhonesCount'),
+      modalPhonesList: document.getElementById('modalPhonesList'),
+      modalSocialsCount: document.getElementById('modalSocialsCount'),
+      modalSocialsList: document.getElementById('modalSocialsList'),
+      modalCopyrightText: document.getElementById('modalCopyrightText'),
+      modalContactFormStatus: document.getElementById('modalContactFormStatus'),
       modalMetaTitle: document.getElementById('modalMetaTitle'),
       modalMetaDesc: document.getElementById('modalMetaDesc'),
       modalMetaCanonical: document.getElementById('modalMetaCanonical'),
@@ -246,7 +270,11 @@ class CrawlerDashboard {
       dlgTimeout: document.getElementById('dlgTimeout'),
       dlgSameDomain: document.getElementById('dlgSameDomain'),
       dlgIncludeSubdomains: document.getElementById('dlgIncludeSubdomains'),
-      dlgFollowLinks: document.getElementById('dlgFollowLinks')
+      dlgFollowLinks: document.getElementById('dlgFollowLinks'),
+      dlgPrioritizeLegal: document.getElementById('dlgPrioritizeLegal'),
+      dlgPrioritizeContact: document.getElementById('dlgPrioritizeContact'),
+      dlgExtractContact: document.getElementById('dlgExtractContact'),
+      dlgExtractLegal: document.getElementById('dlgExtractLegal')
     };
   }
 
@@ -299,6 +327,14 @@ class CrawlerDashboard {
       this.currentPage = 1;
       this._renderTable();
     });
+
+    if (this.dom.filterPageType) {
+      this.dom.filterPageType.addEventListener('change', (e) => {
+        this.pageTypeFilter = e.target.value;
+        this.currentPage = 1;
+        this._renderTable();
+      });
+    }
 
     this.dom.filterHttpCode.addEventListener('change', (e) => {
       this.httpCodeFilter = e.target.value;
@@ -392,7 +428,11 @@ class CrawlerDashboard {
         timeoutMs: parseInt(this.dom.dlgTimeout.value, 10) || 15000,
         sameDomainOnly: this.dom.dlgSameDomain.checked,
         includeSubdomains: this.dom.dlgIncludeSubdomains.checked,
-        followDiscoveredLinks: this.dom.dlgFollowLinks.checked
+        followDiscoveredLinks: this.dom.dlgFollowLinks.checked,
+        prioritizeLegalPages: this.dom.dlgPrioritizeLegal ? this.dom.dlgPrioritizeLegal.checked : true,
+        prioritizeContactPages: this.dom.dlgPrioritizeContact ? this.dom.dlgPrioritizeContact.checked : true,
+        extractContactInfo: this.dom.dlgExtractContact ? this.dom.dlgExtractContact.checked : true,
+        extractLegalInfo: this.dom.dlgExtractLegal ? this.dom.dlgExtractLegal.checked : true
       };
       await saveSettings(this.settings);
       this.dom.settingsModal.classList.add('hidden');
@@ -707,7 +747,16 @@ class CrawlerDashboard {
     }
 
     this.queuedUrlsSet.add(normalized);
-    this.urlQueue.push({ url: normalized, depth, source });
+
+    // Prioritize Legal and Contact pages at the front of the queue if enabled
+    const isLegal = isLegalPageUrl(normalized);
+    const isContact = isContactPageUrl(normalized);
+
+    if ((this.settings.prioritizeLegalPages !== false && isLegal) || (this.settings.prioritizeContactPages !== false && isContact)) {
+      this.urlQueue.unshift({ url: normalized, depth, source, isPriority: true });
+    } else {
+      this.urlQueue.push({ url: normalized, depth, source });
+    }
   }
 
   /**
@@ -908,6 +957,11 @@ class CrawlerDashboard {
       list = list.filter(p => p.status === this.statusFilter);
     }
 
+    // Page Type filter
+    if (this.pageTypeFilter !== 'all') {
+      list = list.filter(p => p.pageType === this.pageTypeFilter);
+    }
+
     // HTTP code filter
     if (this.httpCodeFilter !== 'all') {
       if (this.httpCodeFilter === '200') list = list.filter(p => p.httpStatus === 200);
@@ -944,7 +998,7 @@ class CrawlerDashboard {
     if (totalCount === 0) {
       this.dom.urlsTableBody.innerHTML = `
         <tr class="empty-table-row">
-          <td colspan="8">${this.crawledPages.length === 0 ? 'No crawled pages yet.' : 'No pages match current filters.'}</td>
+          <td colspan="9">${this.crawledPages.length === 0 ? 'No crawled pages yet.' : 'No pages match current filters.'}</td>
         </tr>
       `;
       this.dom.paginationInfo.textContent = 'Showing 0-0 of 0 URLs';
@@ -960,12 +1014,14 @@ class CrawlerDashboard {
     this.dom.urlsTableBody.innerHTML = visiblePages.map((page, idx) => {
       const rowNum = startIndex + idx + 1;
       const statusBadge = this._getStatusBadge(page);
+      const typeBadge = `<span class="badge ${page.pageTypeBadgeClass || 'badge-neutral'}">${page.pageTypeLabel || 'Standard'}</span>`;
       const httpCodeBadge = page.httpStatus ? `<span class="badge ${page.httpStatus === 200 ? 'badge-success' : 'badge-danger'}">${page.httpStatus}</span>` : '<span class="text-subtle">-</span>';
 
       return `
         <tr>
           <td>${rowNum}</td>
           <td>${statusBadge}</td>
+          <td>${typeBadge}</td>
           <td>${httpCodeBadge}</td>
           <td class="table-url-cell" title="${page.url}">
             <a href="${page.url}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none;">
@@ -1033,6 +1089,12 @@ class CrawlerDashboard {
     let brokenLinks = failedPages.length;
     let schemaPages = 0;
     const allSchemaTypes = new Set();
+    let hasTermsPage = false;
+    let hasPrivacyPage = false;
+    let hasContactPage = false;
+    const allEmails = new Set();
+    const allPhones = new Set();
+    const allSocials = new Set();
 
     for (const page of pages) {
       if (page.wordCount) totalWords += page.wordCount;
@@ -1058,6 +1120,21 @@ class CrawlerDashboard {
         schemaPages++;
         (page.structuredData.schemaTypes || []).forEach(t => allSchemaTypes.add(t));
       }
+
+      // Legal & Contact compliance checks
+      if (page.pageType === 'terms' || page.legalInfo?.hasTerms || page.legalInfo?.termsUrl) {
+        hasTermsPage = true;
+      }
+      if (page.pageType === 'privacy' || page.legalInfo?.hasPrivacy || page.legalInfo?.privacyUrl) {
+        hasPrivacyPage = true;
+      }
+      if (page.pageType === 'contact' || page.contactInfo?.hasContactForm || (page.contactInfo?.emails && page.contactInfo.emails.length > 0)) {
+        hasContactPage = true;
+      }
+
+      (page.contactInfo?.emails || []).forEach(e => allEmails.add(e));
+      (page.contactInfo?.phones || []).forEach(p => allPhones.add(p));
+      (page.contactInfo?.socials || []).forEach(s => allSocials.add(s.url || s));
     }
 
     const avgWords = successPages.length > 0 ? Math.round(totalWords / successPages.length) : 0;
@@ -1105,6 +1182,29 @@ class CrawlerDashboard {
     this.dom.seoSchemaPages.textContent = schemaPages;
     this.dom.seoSchemaTypesList.textContent = allSchemaTypes.size > 0 ? Array.from(allSchemaTypes).join(', ') : 'None';
 
+    // Populate Compliance Audit Cards
+    if (this.dom.auditTermsStatus) {
+      this.dom.auditTermsStatus.textContent = hasTermsPage ? 'Detected' : 'Not Found';
+      this.dom.auditTermsStatus.className = hasTermsPage ? 'text-success' : 'badge-flag';
+    }
+    if (this.dom.auditPrivacyStatus) {
+      this.dom.auditPrivacyStatus.textContent = hasPrivacyPage ? 'Detected' : 'Not Found';
+      this.dom.auditPrivacyStatus.className = hasPrivacyPage ? 'text-success' : 'badge-flag';
+    }
+    if (this.dom.auditContactStatus) {
+      this.dom.auditContactStatus.textContent = hasContactPage ? 'Detected' : 'Not Found';
+      this.dom.auditContactStatus.className = hasContactPage ? 'text-success' : 'badge-flag';
+    }
+    if (this.dom.auditEmailsCount) {
+      this.dom.auditEmailsCount.textContent = allEmails.size;
+    }
+    if (this.dom.auditPhonesCount) {
+      this.dom.auditPhonesCount.textContent = allPhones.size;
+    }
+    if (this.dom.auditSocialsCount) {
+      this.dom.auditSocialsCount.textContent = allSocials.size;
+    }
+
     this.dom.tabCountDuplicates.textContent = dupTitlesCount + dupDescCount;
 
     // Render Duplicates Tab
@@ -1114,7 +1214,8 @@ class CrawlerDashboard {
       totalDiscovered, crawledCount, successful: successPages.length, failed: failedPages.length,
       skipped: skippedPages.length, avgWordCount: avgWords, missingTitle, missingDesc,
       dupTitlesCount, dupDescCount, missingH1, multipleH1, totalImages, missingAlt,
-      schemaPages, internalLinks, externalLinks
+      schemaPages, internalLinks, externalLinks, hasTermsPage, hasPrivacyPage, hasContactPage,
+      totalEmailsCount: allEmails.size, totalPhonesCount: allPhones.size, totalSocialsCount: allSocials.size
     };
   }
 
@@ -1162,6 +1263,9 @@ class CrawlerDashboard {
 
     // Overview Tab
     this.dom.modalMetaTitle.textContent = page.title || '(None)';
+    if (this.dom.modalOverviewPageType) {
+      this.dom.modalOverviewPageType.innerHTML = `<span class="badge ${page.pageTypeBadgeClass || 'badge-neutral'}">${page.pageTypeLabel || 'Standard'}</span>`;
+    }
     this.dom.modalMetaDesc.textContent = page.metadata?.description || '(None)';
     this.dom.modalMetaCanonical.textContent = page.metadata?.canonical || '(None)';
     this.dom.modalMetaRobots.textContent = page.metadata?.robots || '(None)';
@@ -1169,6 +1273,117 @@ class CrawlerDashboard {
     this.dom.modalMetaOgDesc.textContent = page.metadata?.openGraph?.description || '(None)';
     this.dom.modalMetaStatus.textContent = `${page.httpStatus || page.status} (${page.httpStatusText || ''})`;
     this.dom.modalMetaLatency.textContent = page.responseTimeMs ? `${page.responseTimeMs} ms` : 'N/A';
+
+    // Contact & Legal Tab
+    if (this.dom.modalPageTypeBadge) {
+      this.dom.modalPageTypeBadge.className = `badge ${page.pageTypeBadgeClass || 'badge-neutral'}`;
+      this.dom.modalPageTypeBadge.textContent = page.pageTypeLabel || 'Standard Page';
+    }
+    if (this.dom.modalPageTypeDesc) {
+      this.dom.modalPageTypeDesc.textContent = this._getPageTypeDescription(page.pageType);
+    }
+
+    // Render Legal Links
+    const legal = page.legalInfo || {};
+    const legalItems = [];
+    if (legal.termsUrl) legalItems.push({ label: 'Terms of Service', url: legal.termsUrl, type: 'Terms' });
+    if (legal.privacyUrl) legalItems.push({ label: 'Privacy Policy', url: legal.privacyUrl, type: 'Privacy' });
+    if (legal.cookieUrl) legalItems.push({ label: 'Cookie Policy', url: legal.cookieUrl, type: 'Cookies' });
+    if (legal.disclaimerUrl) legalItems.push({ label: 'Legal / Disclaimer', url: legal.disclaimerUrl, type: 'Legal' });
+
+    if (this.dom.modalLegalLinksList) {
+      if (legalItems.length === 0) {
+        this.dom.modalLegalLinksList.innerHTML = '<p class="text-muted" style="font-size: 12px;">No dedicated policy URLs extracted from this page.</p>';
+      } else {
+        this.dom.modalLegalLinksList.innerHTML = legalItems.map(item => `
+          <div class="policy-link-item">
+            <div>
+              <strong>${item.label}:</strong>
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>
+            </div>
+            <span class="badge badge-neutral">${item.type}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Render Emails
+    const emails = page.contactInfo?.emails || [];
+    if (this.dom.modalEmailsCount) this.dom.modalEmailsCount.textContent = emails.length;
+    if (this.dom.modalEmailsList) {
+      if (emails.length === 0) {
+        this.dom.modalEmailsList.innerHTML = '<li class="text-muted" style="font-size: 12px;">No email addresses detected.</li>';
+      } else {
+        this.dom.modalEmailsList.innerHTML = emails.map(email => `
+          <li class="contact-chip">
+            <span><a href="mailto:${email}" style="color: var(--primary); text-decoration: none;">${email}</a></span>
+            <button class="btn-copy-chip" data-copy="${email}" title="Copy email">Copy</button>
+          </li>
+        `).join('');
+      }
+    }
+
+    // Render Phones
+    const phones = page.contactInfo?.phones || [];
+    if (this.dom.modalPhonesCount) this.dom.modalPhonesCount.textContent = phones.length;
+    if (this.dom.modalPhonesList) {
+      if (phones.length === 0) {
+        this.dom.modalPhonesList.innerHTML = '<li class="text-muted" style="font-size: 12px;">No phone numbers detected.</li>';
+      } else {
+        this.dom.modalPhonesList.innerHTML = phones.map(phone => `
+          <li class="contact-chip">
+            <span><a href="tel:${phone.replace(/\s+/g, '')}" style="color: var(--primary); text-decoration: none;">${phone}</a></span>
+            <button class="btn-copy-chip" data-copy="${phone}" title="Copy phone">Copy</button>
+          </li>
+        `).join('');
+      }
+    }
+
+    // Render Socials
+    const socials = page.contactInfo?.socials || [];
+    if (this.dom.modalSocialsCount) this.dom.modalSocialsCount.textContent = socials.length;
+    if (this.dom.modalSocialsList) {
+      if (socials.length === 0) {
+        this.dom.modalSocialsList.innerHTML = '<p class="text-muted" style="font-size: 12px;">No social media links detected.</p>';
+      } else {
+        this.dom.modalSocialsList.innerHTML = socials.map(s => `
+          <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="social-chip">
+            <strong>${s.platform}:</strong>
+            <span>${s.handle ? `@${s.handle}` : s.url}</span>
+          </a>
+        `).join('');
+      }
+    }
+
+    // Copyright and Form
+    if (this.dom.modalCopyrightText) {
+      this.dom.modalCopyrightText.textContent = legal.copyright || '(None detected)';
+    }
+    if (this.dom.modalContactFormStatus) {
+      this.dom.modalContactFormStatus.textContent = page.contactInfo?.hasContactForm ? 'Yes (Form detected on page)' : 'No';
+      this.dom.modalContactFormStatus.className = page.contactInfo?.hasContactForm ? 'modal-val text-success' : 'modal-val';
+    }
+
+    // Update Contact & Legal Tab Badge Count
+    const totalContactLegalCount = emails.length + phones.length + socials.length + legalItems.length;
+    if (this.dom.modalContactLegalCount) {
+      this.dom.modalContactLegalCount.textContent = totalContactLegalCount;
+    }
+
+    // Attach copy button handlers
+    this.dom.inspectModal.querySelectorAll('.btn-copy-chip').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const textToCopy = btn.dataset.copy;
+        if (textToCopy) {
+          try {
+            await navigator.clipboard.writeText(textToCopy);
+            const original = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = original; }, 1500);
+          } catch {}
+        }
+      });
+    });
 
     // Headings Tab
     const headings = page.headings?.list || [];
@@ -1230,6 +1445,19 @@ class CrawlerDashboard {
     }
 
     this.dom.inspectModal.classList.remove('hidden');
+  }
+
+  _getPageTypeDescription(type) {
+    switch (type) {
+      case 'terms': return 'Official Terms & Conditions / Terms of Service agreement.';
+      case 'privacy': return 'Privacy Policy, cookie notice, or GDPR compliance disclosure.';
+      case 'legal': return 'Legal disclaimer, imprint, compliance, or refund policy document.';
+      case 'contact': return 'Contact directory, customer service hub, or inquiries portal.';
+      case 'about': return 'Company overview, team profile, or about page.';
+      case 'docs': return 'Technical documentation, help center, or FAQ.';
+      case 'blog': return 'Blog post, news article, or journal entry.';
+      default: return 'Standard website content page.';
+    }
   }
 
   _closeModal() {
@@ -1339,6 +1567,10 @@ class CrawlerDashboard {
     this.dom.dlgSameDomain.checked = s.sameDomainOnly !== false;
     this.dom.dlgIncludeSubdomains.checked = !!s.includeSubdomains;
     this.dom.dlgFollowLinks.checked = s.followDiscoveredLinks !== false;
+    if (this.dom.dlgPrioritizeLegal) this.dom.dlgPrioritizeLegal.checked = s.prioritizeLegalPages !== false;
+    if (this.dom.dlgPrioritizeContact) this.dom.dlgPrioritizeContact.checked = s.prioritizeContactPages !== false;
+    if (this.dom.dlgExtractContact) this.dom.dlgExtractContact.checked = s.extractContactInfo !== false;
+    if (this.dom.dlgExtractLegal) this.dom.dlgExtractLegal.checked = s.extractLegalInfo !== false;
   }
 }
 

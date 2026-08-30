@@ -190,6 +190,18 @@
                 <option value="queued">Queued</option>
               </select>
 
+              <select id="filterPageType" class="filter-select">
+                <option value="all">All Page Types</option>
+                <option value="terms">Terms & Conditions</option>
+                <option value="privacy">Privacy Policy</option>
+                <option value="legal">Legal / Policy</option>
+                <option value="contact">Contact Us</option>
+                <option value="about">About Us</option>
+                <option value="docs">Docs & Help</option>
+                <option value="blog">Blog & News</option>
+                <option value="standard">Standard Pages</option>
+              </select>
+
               <select id="filterHttpCode" class="filter-select">
                 <option value="all">All HTTP Codes</option>
                 <option value="200">200 OK</option>
@@ -215,17 +227,18 @@
                 <tr>
                   <th style="width: 40px;">#</th>
                   <th class="sortable" data-sort="status" style="width: 95px;">Status</th>
-                  <th class="sortable" data-sort="httpStatus" style="width: 80px;">HTTP</th>
+                  <th class="sortable" data-sort="pageType" style="width: 120px;">Page Type</th>
+                  <th class="sortable" data-sort="httpStatus" style="width: 75px;">HTTP</th>
                   <th class="sortable" data-sort="url">Page URL</th>
                   <th class="sortable" data-sort="title">Title</th>
-                  <th class="sortable" data-sort="wordCount" style="width: 100px;">Words</th>
-                  <th class="sortable" data-sort="responseTimeMs" style="width: 90px;">Latency</th>
-                  <th style="width: 90px; text-align: center;">Inspect</th>
+                  <th class="sortable" data-sort="wordCount" style="width: 85px;">Words</th>
+                  <th class="sortable" data-sort="responseTimeMs" style="width: 85px;">Latency</th>
+                  <th style="width: 85px; text-align: center;">Inspect</th>
                 </tr>
               </thead>
               <tbody id="urlsTableBody">
                 <tr class="empty-table-row">
-                  <td colspan="8">No crawled pages yet. Start a crawl above to begin extracting website data.</td>
+                  <td colspan="9">No crawled pages yet. Start a crawl above to begin extracting website data.</td>
                 </tr>
               </tbody>
             </table>
@@ -292,6 +305,19 @@
                 <div class="seo-metric-row"><span>Broken / 4xx URLs:</span><strong id="seoBrokenLinks" class="badge-flag">0</strong></div>
                 <div class="seo-metric-row"><span>Pages With Schema / JSON-LD:</span><strong id="seoSchemaPages" class="text-success">0</strong></div>
                 <div class="seo-metric-row"><span>Detected Schema Types:</span><strong id="seoSchemaTypesList">None</strong></div>
+              </div>
+            </div>
+
+            <!-- Legal & Contact Compliance -->
+            <div class="card seo-card">
+              <h3 class="seo-card-title">Legal & Contact Compliance</h3>
+              <div class="seo-metric-list">
+                <div class="seo-metric-row"><span>Terms & Conditions:</span><strong id="auditTermsStatus" class="badge-flag">Not Found</strong></div>
+                <div class="seo-metric-row"><span>Privacy Policy:</span><strong id="auditPrivacyStatus" class="badge-flag">Not Found</strong></div>
+                <div class="seo-metric-row"><span>Contact Us / Support:</span><strong id="auditContactStatus" class="badge-flag">Not Found</strong></div>
+                <div class="seo-metric-row"><span>Contact Emails Extracted:</span><strong id="auditEmailsCount" class="text-success">0</strong></div>
+                <div class="seo-metric-row"><span>Phone Numbers Extracted:</span><strong id="auditPhonesCount" class="text-success">0</strong></div>
+                <div class="seo-metric-row"><span>Social Profiles Discovered:</span><strong id="auditSocialsCount">0</strong></div>
               </div>
             </div>
           </div>
@@ -459,6 +485,7 @@
         <!-- Modal Tabs -->
         <div class="modal-tabs-nav">
           <button class="modal-tab-btn active" data-modaltab="modal-overview">Overview & SEO</button>
+          <button class="modal-tab-btn" data-modaltab="modal-contact-legal">Contact & Legal (<span id="modalContactLegalCount">0</span>)</button>
           <button class="modal-tab-btn" data-modaltab="modal-headings">Headings (<span id="modalHeadingsCount">0</span>)</button>
           <button class="modal-tab-btn" data-modaltab="modal-content">Content & Text</button>
           <button class="modal-tab-btn" data-modaltab="modal-links">Links (<span id="modalLinksCount">0</span>)</button>
@@ -472,6 +499,10 @@
             <div class="modal-meta-item">
               <label>Page Title</label>
               <div id="modalMetaTitle" class="modal-val"></div>
+            </div>
+            <div class="modal-meta-item">
+              <label>Page Classification</label>
+              <div id="modalOverviewPageType" class="modal-val"></div>
             </div>
             <div class="modal-meta-item">
               <label>Meta Description</label>
@@ -500,6 +531,59 @@
             <div class="modal-meta-item">
               <label>Response Time</label>
               <div id="modalMetaLatency" class="modal-val"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Tab: Contact & Legal -->
+        <div class="modal-tab-content" id="modal-contact-legal">
+          <div class="contact-legal-grid">
+            <!-- Page Classification Card -->
+            <div class="card detail-subcard">
+              <h4 class="subcard-title">Page Classification & Category</h4>
+              <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                <span id="modalPageTypeBadge" class="badge badge-neutral">Standard Page</span>
+                <span id="modalPageTypeDesc" class="text-muted" style="font-size: 12px;">Standard content page</span>
+              </div>
+            </div>
+
+            <!-- Discovered Legal & Policy URLs -->
+            <div class="card detail-subcard">
+              <h4 class="subcard-title">Discovered Legal & Policy Links</h4>
+              <div class="policy-links-list" id="modalLegalLinksList"></div>
+            </div>
+
+            <!-- Contact Emails -->
+            <div class="card detail-subcard">
+              <h4 class="subcard-title">Discovered Emails (<span id="modalEmailsCount">0</span>)</h4>
+              <ul class="contact-chips-list" id="modalEmailsList"></ul>
+            </div>
+
+            <!-- Phone Numbers -->
+            <div class="card detail-subcard">
+              <h4 class="subcard-title">Phone Numbers (<span id="modalPhonesCount">0</span>)</h4>
+              <ul class="contact-chips-list" id="modalPhonesList"></ul>
+            </div>
+
+            <!-- Social Media Profiles -->
+            <div class="card detail-subcard" style="grid-column: 1 / -1;">
+              <h4 class="subcard-title">Social Media Profiles (<span id="modalSocialsCount">0</span>)</h4>
+              <div class="social-chips-grid" id="modalSocialsList"></div>
+            </div>
+
+            <!-- Copyright & Forms -->
+            <div class="card detail-subcard" style="grid-column: 1 / -1;">
+              <h4 class="subcard-title">Copyright & Form Indicators</h4>
+              <div class="modal-meta-grid" style="grid-template-columns: 1fr 1fr; margin-top: 8px;">
+                <div class="modal-meta-item">
+                  <label>Copyright Notice</label>
+                  <div id="modalCopyrightText" class="modal-val">None</div>
+                </div>
+                <div class="modal-meta-item">
+                  <label>Contact Form Detected</label>
+                  <div id="modalContactFormStatus" class="modal-val">No</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -598,6 +682,22 @@
               <label class="checkbox-label">
                 <input type="checkbox" id="dlgFollowLinks" checked>
                 <span>Follow internal links</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="dlgPrioritizeLegal" checked>
+                <span>Prioritize Terms & Legal</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="dlgPrioritizeContact" checked>
+                <span>Prioritize Contact & About</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="dlgExtractContact" checked>
+                <span>Extract Contact Info</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="dlgExtractLegal" checked>
+                <span>Extract Legal Policies</span>
               </label>
             </div>
           </fieldset>
