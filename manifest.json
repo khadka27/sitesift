@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Site Data Crawler",
+  "name": "Sitesift",
   "version": "1.0.0",
   "description": "Production SEO and content crawler with recursive sitemap discovery, live metrics, and multi-format exports.",
   "permissions": [

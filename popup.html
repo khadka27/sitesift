@@ -11,15 +11,20 @@
     <!-- Header -->
     <header class="app-header">
       <div class="brand">
-        <img src="icons/icon32.png" alt="Logo" class="brand-icon" width="24" height="24">
-        <div>
-          <h1 class="brand-title">Site Data Crawler</h1>
-          <p class="brand-subtitle">Extract, analyze & export website data</p>
+        <div class="brand-icon-wrap">
+          <img src="icons/icon32.png" alt="Site Data Crawler" class="brand-icon" width="22" height="22">
+        </div>
+        <div class="brand-info">
+          <div class="brand-title-row">
+            <h1 class="brand-title">Site Data Crawler</h1>
+            <span class="version-badge">v1.2</span>
+          </div>
+          <p class="brand-subtitle">Fast Content & SEO Extractor</p>
         </div>
       </div>
       <div class="header-actions">
-        <button id="btnOptions" class="icon-button" title="Settings & Preferences" aria-label="Settings">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnOptions" class="icon-button" title="Settings & Options" aria-label="Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
@@ -27,44 +32,58 @@
       </div>
     </header>
 
-    <!-- Mode Selector Tabs -->
-    <nav class="mode-tabs-bar" aria-label="Crawl Mode Selector">
-      <button id="tabSinglePage" class="mode-tab-btn active" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-        </svg>
-        <span>Single Page</span>
-        <span class="mode-pill">Direct Download</span>
-      </button>
-      <button id="tabMultiPage" class="mode-tab-btn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-          <line x1="6" y1="6" x2="6.01" y2="6"></line>
-          <line x1="6" y1="18" x2="6.01" y2="18"></line>
-        </svg>
-        <span>Multi-Page Crawl</span>
-        <span class="mode-pill">Dashboard</span>
-      </button>
-    </nav>
+    <!-- Segmented Mode Switcher -->
+    <div class="segmented-control-wrapper">
+      <div class="segmented-control" role="tablist">
+        <button id="tabSinglePage" class="segment-btn active" type="button" role="tab" aria-selected="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span>Single Page</span>
+          <span class="pill-badge">Direct Download</span>
+        </button>
+        <button id="tabMultiPage" class="segment-btn" type="button" role="tab" aria-selected="false">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+          <span>Site Crawl</span>
+          <span class="pill-badge">Dashboard</span>
+        </button>
+      </div>
+    </div>
 
-    <!-- Main Form -->
+    <!-- Main Content -->
     <main class="popup-main">
       <!-- Target URL Input -->
       <section class="form-group">
         <div class="input-label-row">
-          <label for="inputUrl" class="form-label">Page / Website URL</label>
-          <button id="btnCurrentTab" class="text-link-btn" type="button">Use Active Tab</button>
+          <label for="inputUrl" class="form-label">Target Web URL</label>
+          <button id="btnCurrentTab" class="btn-chip-action" type="button" title="Fetch URL from active browser tab">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Active Tab</span>
+          </button>
         </div>
         <div class="url-input-wrapper">
+          <div class="url-input-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
           <input 
             type="url" 
             id="inputUrl" 
             class="form-input" 
-            placeholder="https://example.com" 
+            placeholder="https://example.com/page" 
             required 
             autocomplete="url"
             spellcheck="false"
@@ -72,34 +91,34 @@
         </div>
         <div id="activeTabIndicator" class="active-tab-indicator hidden">
           <span class="active-tab-pulse"></span>
-          <span id="activeTabLabel" class="active-tab-text">Auto-detected active tab</span>
+          <span id="activeTabLabel" class="active-tab-text">Active tab detected</span>
         </div>
       </section>
 
       <!-- Action Buttons -->
       <div class="action-buttons-group">
         <button id="btnMainAction" class="btn btn-primary" type="button">
-          <svg id="mainActionIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg id="mainActionIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon>
           </svg>
           <span id="mainActionLabel">Extract Single Page</span>
         </button>
-        <button id="btnOpenDashboard" class="btn btn-secondary" type="button" title="Open Full Dashboard">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnOpenDashboard" class="btn btn-secondary" type="button" title="Open multi-page crawler dashboard">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9"></line>
             <line x1="9" y1="21" x2="9" y2="9"></line>
           </svg>
-          Dashboard
+          <span>Dashboard</span>
         </button>
       </div>
 
       <!-- Loading State Indicator -->
       <div id="extractLoadingState" class="extract-loading-box hidden">
-        <div class="spinner-pulse"></div>
+        <div class="loading-spinner"></div>
         <div class="loading-info">
           <span class="loading-title">Extracting Page Content...</span>
-          <span class="loading-subtitle">Parsing DOM, headings, contact details & legal data</span>
+          <span class="loading-subtitle">Parsing DOM hierarchy, text & pricing</span>
         </div>
       </div>
 
@@ -107,11 +126,11 @@
       <section id="singlePageResultPanel" class="result-card hidden">
         <div class="result-card-header">
           <div class="result-header-meta">
-            <span id="resStatusBadge" class="status-badge-ok">200 OK</span>
-            <span id="resLatencyBadge" class="latency-badge">85 ms</span>
-            <span id="resPageTypeBadge" class="page-type-badge">Standard Page</span>
+            <span id="resStatusBadge" class="badge badge-success">200 OK</span>
+            <span id="resLatencyBadge" class="badge badge-neutral">85 ms</span>
+            <span id="resPageTypeBadge" class="badge badge-accent">Standard Page</span>
           </div>
-          <button id="btnCloseResult" class="close-icon-btn" title="Dismiss" type="button">&times;</button>
+          <button id="btnCloseResult" class="close-icon-btn" title="Dismiss" type="button" aria-label="Close">&times;</button>
         </div>
 
         <div class="result-title-row">
@@ -119,7 +138,7 @@
           <span id="resPageUrl" class="result-page-url">https://example.com</span>
         </div>
 
-        <!-- Metrics Chips Grid -->
+        <!-- Metrics Grid -->
         <div class="result-metrics-grid">
           <div class="metric-chip">
             <span class="metric-val" id="resWordCount">0</span>
@@ -149,39 +168,80 @@
 
         <!-- Direct Download Toolbar -->
         <div class="direct-download-section">
-          <div class="download-section-label">
-            <span>Direct Download from Extension:</span>
+          <div class="download-section-header">
+            <span class="download-label">Direct Download:</span>
+            <span class="download-hint">Export instant files from extension</span>
           </div>
           <div class="download-buttons-grid">
-            <button id="btnDlMarkdown" class="dl-btn dl-btn-md" type="button" title="Download Markdown (.md) with H1-H6 structure">
-              <span class="dl-icon">📝</span>
-              <span class="dl-text">Markdown</span>
-              <span class="dl-ext">.md</span>
+            <button id="btnDlMarkdown" class="dl-btn" type="button" title="Download clean structured Markdown document">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title">Markdown</span>
+                <span class="dl-tag">.md</span>
+              </div>
             </button>
-            <button id="btnDlTxt" class="dl-btn dl-btn-txt" type="button" title="Download clean plain text (.txt)">
-              <span class="dl-icon">📄</span>
-              <span class="dl-text">Text Content</span>
-              <span class="dl-ext">.txt</span>
+
+            <button id="btnDlTxt" class="dl-btn" type="button" title="Download heading-structured plain text">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title">Text</span>
+                <span class="dl-tag">.txt</span>
+              </div>
             </button>
-            <button id="btnDlCsv" class="dl-btn dl-btn-csv" type="button" title="Download SEO metrics & links as CSV">
-              <span class="dl-icon">📊</span>
-              <span class="dl-text">Spreadsheet</span>
-              <span class="dl-ext">.csv</span>
+
+            <button id="btnDlCsv" class="dl-btn" type="button" title="Download SEO data table as CSV spreadsheet">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title">Spreadsheet</span>
+                <span class="dl-tag">.csv</span>
+              </div>
             </button>
-            <button id="btnDlJson" class="dl-btn dl-btn-json" type="button" title="Download complete structured JSON payload">
-              <span class="dl-icon">⚙️</span>
-              <span class="dl-text">Full JSON</span>
-              <span class="dl-ext">.json</span>
+
+            <button id="btnDlJson" class="dl-btn" type="button" title="Download raw structured JSON dataset">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title">JSON Data</span>
+                <span class="dl-tag">.json</span>
+              </div>
             </button>
-            <button id="btnDlHtml" class="dl-btn dl-btn-html" type="button" title="Download standalone formatted HTML document">
-              <span class="dl-icon">🌐</span>
-              <span class="dl-text">Clean HTML</span>
-              <span class="dl-ext">.html</span>
+
+            <button id="btnDlHtml" class="dl-btn" type="button" title="Download clean standalone readable HTML document">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title">HTML</span>
+                <span class="dl-tag">.html</span>
+              </div>
             </button>
-            <button id="btnCopyContent" class="dl-btn dl-btn-copy" type="button" title="Copy markdown to clipboard">
-              <span class="dl-icon">📋</span>
-              <span class="dl-text" id="copyBtnLabel">Copy Text</span>
-              <span class="dl-ext">Clip</span>
+
+            <button id="btnCopyContent" class="dl-btn dl-btn-accent" type="button" title="Copy markdown to clipboard">
+              <svg class="dl-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <div class="dl-btn-content">
+                <span class="dl-title" id="copyBtnLabel">Copy Text</span>
+                <span class="dl-tag">Clipboard</span>
+              </div>
             </button>
           </div>
         </div>
@@ -189,11 +249,18 @@
         <!-- Content Preview Accordion -->
         <details class="content-preview-accordion">
           <summary class="preview-accordion-header">
-            <span>Preview Extracted Content & Headings</span>
+            <div class="preview-header-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                <line x1="9" y1="20" x2="15" y2="20"></line>
+                <line x1="12" y1="4" x2="12" y2="20"></line>
+              </svg>
+              <span>Extracted Headings & Text</span>
+            </div>
             <span class="preview-badge" id="previewSummaryBadge">View Content</span>
           </summary>
           <div class="preview-body" id="previewBody">
-            <!-- Populated dynamically with heading sections -->
+            <!-- Populated dynamically -->
           </div>
         </details>
       </section>
@@ -203,29 +270,28 @@
         <summary class="accordion-header">
           <span class="accordion-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
-            Crawler Configuration
+            <span>Extraction Settings</span>
           </span>
           <span class="accordion-badge" id="settingsSummaryBadge">Single Page</span>
         </summary>
 
         <div class="accordion-content">
-          <!-- Crawl Mode -->
+          <!-- Crawl Mode Selector -->
           <div class="control-row">
-            <label for="selectCrawlMode" class="sub-label">Crawl Mode</label>
+            <label for="selectCrawlMode" class="sub-label">Mode</label>
             <select id="selectCrawlMode" class="form-select">
-              <option value="single_page" selected>Single Page (Instant In-Popup Download)</option>
-              <option value="sitemap_and_links">Sitemap + discovered links (Dashboard)</option>
-              <option value="sitemap">Sitemap only (Dashboard)</option>
-              <option value="links_only">Direct link crawl (Dashboard)</option>
+              <option value="single_page" selected>Single Page (In-Popup Download)</option>
+              <option value="sitemap_and_links">Sitemap + Links (Full Dashboard)</option>
+              <option value="sitemap">Sitemap Only (Full Dashboard)</option>
+              <option value="links_only">Links Only (Full Dashboard)</option>
             </select>
           </div>
 
-          <!-- Multi-page controls container (toggleable based on mode) -->
+          <!-- Multi-page controls container -->
           <div id="multiPageControlsContainer" class="hidden">
-            <!-- Max Pages -->
             <div class="control-row">
               <label for="selectMaxPages" class="sub-label">Max Pages</label>
               <div class="inline-input-group">
@@ -236,13 +302,12 @@
                   <option value="500">500 pages</option>
                   <option value="custom">Custom...</option>
                 </select>
-                <input type="number" id="inputCustomPages" class="form-input custom-number-input hidden" min="1" max="10000" placeholder="e.g. 250">
+                <input type="number" id="inputCustomPages" class="form-input custom-number-input hidden" min="1" max="10000" placeholder="250">
               </div>
             </div>
 
-            <!-- Crawl Delay -->
             <div class="control-row">
-              <label for="selectCrawlDelay" class="sub-label">Crawl Delay</label>
+              <label for="selectCrawlDelay" class="sub-label">Delay</label>
               <div class="inline-input-group">
                 <select id="selectCrawlDelay" class="form-select">
                   <option value="0">0 ms (Fast)</option>
@@ -274,7 +339,7 @@
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="chkClassifyPageTypes" checked>
-                <span>Classify Type</span>
+                <span>Page Types</span>
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="chkExtractMetadata" checked>
@@ -282,11 +347,11 @@
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="chkExtractLinks" checked>
-                <span>Internal/Ext Links</span>
+                <span>Links</span>
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="chkExtractImages" checked>
-                <span>Images & Alt tags</span>
+                <span>Images & Alt</span>
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="chkExtractStructuredData" checked>
@@ -297,16 +362,17 @@
         </div>
       </details>
 
-      <!-- Status banner / Notice -->
+      <!-- Status Banner -->
       <div id="statusBanner" class="status-banner hidden"></div>
     </main>
 
     <!-- Footer -->
     <footer class="popup-footer">
       <div class="footer-meta">
-        <span>Manifest V3</span>
-        <span>•</span>
-        <span class="safe-badge">100% Client-Side Safe</span>
+        <span class="safe-indicator-dot"></span>
+        <span>Local Processing</span>
+        <span class="dot-separator">•</span>
+        <span>No Data Stored Remotely</span>
       </div>
       <button id="btnClearCache" class="footer-link-btn" type="button">Clear Cache</button>
     </footer>

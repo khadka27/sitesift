@@ -96,7 +96,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentMode = mode;
     if (mode === 'single_page') {
       tabSinglePage.classList.add('active');
+      tabSinglePage.setAttribute('aria-selected', 'true');
       tabMultiPage.classList.remove('active');
+      tabMultiPage.setAttribute('aria-selected', 'false');
       selectCrawlMode.value = 'single_page';
       multiPageControlsContainer.classList.add('hidden');
 
@@ -105,7 +107,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       settingsSummaryBadge.textContent = 'Single Page';
     } else {
       tabMultiPage.classList.add('active');
+      tabMultiPage.setAttribute('aria-selected', 'true');
       tabSinglePage.classList.remove('active');
+      tabSinglePage.setAttribute('aria-selected', 'false');
       if (selectCrawlMode.value === 'single_page') {
         selectCrawlMode.value = 'sitemap_and_links';
       }
