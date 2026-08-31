@@ -103,7 +103,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       multiPageControlsContainer.classList.add('hidden');
 
       mainActionLabel.textContent = 'Extract Single Page';
-      mainActionIcon.innerHTML = '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon>';
+      while (mainActionIcon.firstChild) mainActionIcon.removeChild(mainActionIcon.firstChild);
+      const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      polygon.setAttribute('points', '13 2 3 14 12 14 11 22 21 10 12 10 13 2');
+      polygon.setAttribute('fill', 'currentColor');
+      mainActionIcon.appendChild(polygon);
       settingsSummaryBadge.textContent = 'Single Page';
     } else {
       tabMultiPage.classList.add('active');
@@ -116,7 +120,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       multiPageControlsContainer.classList.remove('hidden');
 
       mainActionLabel.textContent = 'Start Deep Crawl';
-      mainActionIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor"></polygon>';
+      while (mainActionIcon.firstChild) mainActionIcon.removeChild(mainActionIcon.firstChild);
+      const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      polygon.setAttribute('points', '5 3 19 12 5 21 5 3');
+      polygon.setAttribute('fill', 'currentColor');
+      mainActionIcon.appendChild(polygon);
       updateMultiPageSummaryBadge();
     }
     persistCurrentSettings();
@@ -411,47 +419,72 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     resLegalBadge.textContent = page.legalInfo?.hasLegalInfo ? 'Detected' : 'None';
 
-    // Content preview body
-    const escapeHtml = (unsafe) => {
-      return String(unsafe || '').replace(/[<>&'"]/g, (c) => {
-        switch (c) {
-          case '<': return '&lt;';
-          case '>': return '&gt;';
-          case '&': return '&amp;';
-          case '\'': return '&#39;';
-          case '"': return '&quot;';
-          default: return c;
+    // Content preview body (Rendered safely via DOM nodes for AMO/CSP compliance)
+    while (previewBody.firstChild) previewBody.removeChild(previewBody.firstChild);
+
+    const appendTextWithCutPrices = (parent, rawText) => {
+      if (!rawText) return;
+      const parts = String(rawText).split(/(~~[^~]+~~)/g);
+      parts.forEach(part => {
+        if (part.startsWith('~~') && part.endsWith('~~') && part.length > 4) {
+          const del = document.createElement('del');
+          del.className = 'cut-price-preview';
+          del.textContent = part.slice(2, -2);
+          parent.appendChild(del);
+        } else if (part) {
+          parent.appendChild(document.createTextNode(part));
         }
       });
-    };
-
-    const formatPreviewText = (text) => {
-      const escaped = escapeHtml(text);
-      return escaped.replace(/~~([^~]+)~~/g, '<span class="cut-price-preview">$1</span>');
     };
 
     const sections = page.content?.headingSections || [];
     if (sections.length > 0) {
       previewSummaryBadge.textContent = `${sections.length} Sections`;
-      const lines = [];
-      sections.forEach(sec => {
-        lines.push(`<strong>[${sec.level.toUpperCase()}] ${formatPreviewText(sec.heading)}</strong>`);
+      sections.forEach((sec, idx) => {
+        const secWrap = document.createElement('div');
+        secWrap.className = 'preview-sec-block';
+        if (idx > 0) secWrap.style.marginTop = '8px';
+
+        const headEl = document.createElement('strong');
+        headEl.style.display = 'block';
+        headEl.style.color = 'var(--text-primary)';
+        headEl.appendChild(document.createTextNode(`[${(sec.level || 'H2').toUpperCase()}] `));
+        appendTextWithCutPrices(headEl, sec.heading || '');
+        secWrap.appendChild(headEl);
+
         if (sec.paragraphs && sec.paragraphs.length > 0) {
-          sec.paragraphs.slice(0, 4).forEach(p => lines.push(`  ${formatPreviewText(p)}`));
+          sec.paragraphs.slice(0, 4).forEach(p => {
+            const pEl = document.createElement('div');
+            pEl.style.paddingLeft = '8px';
+            pEl.style.color = 'var(--text-secondary)';
+            appendTextWithCutPrices(pEl, p);
+            secWrap.appendChild(pEl);
+          });
           if (sec.paragraphs.length > 4) {
-            lines.push(`  <em style="color: var(--text-muted);">... and ${sec.paragraphs.length - 4} more paragraphs</em>`);
+            const moreEl = document.createElement('div');
+            moreEl.style.paddingLeft = '8px';
+            moreEl.style.color = 'var(--text-muted)';
+            moreEl.style.fontStyle = 'italic';
+            moreEl.textContent = `... and ${sec.paragraphs.length - 4} more paragraphs`;
+            secWrap.appendChild(moreEl);
           }
         }
-        lines.push('');
+        previewBody.appendChild(secWrap);
       });
-      previewBody.innerHTML = lines.join('<br>');
     } else if (page.content?.cleanText) {
       previewSummaryBadge.textContent = 'Plain Content';
       const snippet = page.content.cleanText.slice(0, 800) + (page.content.cleanText.length > 800 ? '...' : '');
-      previewBody.innerHTML = formatPreviewText(snippet).replace(/\n/g, '<br>');
+      const lines = snippet.split('\n');
+      lines.forEach((line, i) => {
+        if (i > 0) previewBody.appendChild(document.createElement('br'));
+        appendTextWithCutPrices(previewBody, line);
+      });
     } else {
       previewSummaryBadge.textContent = 'Empty';
-      previewBody.textContent = '(No text content extracted)';
+      const emptyEl = document.createElement('span');
+      emptyEl.style.color = 'var(--text-muted)';
+      emptyEl.textContent = '(No text content extracted)';
+      previewBody.appendChild(emptyEl);
     }
 
     singlePageResultPanel.classList.remove('hidden');

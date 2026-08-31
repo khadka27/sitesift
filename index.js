@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRunSim.disabled = true;
     simBtnText.textContent = 'Crawling in Progress...';
     simProgressBar.style.width = '0%';
-    simTableBody.innerHTML = '';
+    while (simTableBody.firstChild) simTableBody.removeChild(simTableBody.firstChild);
 
     const currentUrl = simUrlInput.value.trim() || 'https://store.myshopify.com';
     const activePreset = PRESETS[currentUrl] || PRESETS['https://store.myshopify.com'];
@@ -152,18 +152,39 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.style.transform = 'translateY(6px)';
       tr.style.transition = 'all 0.3s ease';
 
-      const fullUrl = `${currentUrl}${p.path}`;
+      const tdNum = document.createElement('td');
+      tdNum.textContent = index + 1;
 
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td><span class="badge badge-green">200 OK</span></td>
-        <td><span class="badge ${p.badgeClass}">${p.typeLabel}</span></td>
-        <td><span class="url-code-text">${p.path}</span></td>
-        <td><strong>${p.title}</strong></td>
-        <td>${p.words} words</td>
-        <td>${p.latency} ms</td>
-      `;
+      const tdStatus = document.createElement('td');
+      const spanStatus = document.createElement('span');
+      spanStatus.className = 'badge badge-green';
+      spanStatus.textContent = '200 OK';
+      tdStatus.appendChild(spanStatus);
 
+      const tdType = document.createElement('td');
+      const spanType = document.createElement('span');
+      spanType.className = `badge ${p.badgeClass}`;
+      spanType.textContent = p.typeLabel;
+      tdType.appendChild(spanType);
+
+      const tdPath = document.createElement('td');
+      const spanPath = document.createElement('span');
+      spanPath.className = 'url-code-text';
+      spanPath.textContent = p.path;
+      tdPath.appendChild(spanPath);
+
+      const tdTitle = document.createElement('td');
+      const strongTitle = document.createElement('strong');
+      strongTitle.textContent = p.title;
+      tdTitle.appendChild(strongTitle);
+
+      const tdWords = document.createElement('td');
+      tdWords.textContent = `${p.words} words`;
+
+      const tdLatency = document.createElement('td');
+      tdLatency.textContent = `${p.latency} ms`;
+
+      tr.append(tdNum, tdStatus, tdType, tdPath, tdTitle, tdWords, tdLatency);
       simTableBody.appendChild(tr);
 
       // Trigger fade-in

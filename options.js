@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function populateForm(s) {
-    optCrawlMode.value = s.crawlMode || 'sitemap_and_links';
+    optCrawlMode.value = s.crawlMode || 'single_page';
     if (optDefaultExportFormat) {
       optDefaultExportFormat.value = s.defaultExportFormat || 'markdown';
     }

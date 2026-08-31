@@ -839,7 +839,12 @@ class CrawlerDashboard {
     this.totalResponseTimeMs = 0;
     this.totalResponseCount = 0;
 
-    this.dom.sitemapList.innerHTML = '<li class="sitemap-list-empty">No sitemaps discovered yet. Enter a website URL above and click Start Crawl.</li>';
+    this._clearElement(this.dom.sitemapList);
+    const emptyLi = document.createElement('li');
+    emptyLi.className = 'sitemap-list-empty';
+    emptyLi.textContent = 'No sitemaps discovered yet. Enter a website URL above and click Start Crawl.';
+    this.dom.sitemapList.appendChild(emptyLi);
+
     this.dom.currentUrlDisplay.textContent = 'Waiting for input...';
     this.dom.progressBarFill.style.width = '0%';
     this.dom.progressPercentText.textContent = '0%';
@@ -847,6 +852,11 @@ class CrawlerDashboard {
     this._updateUiState();
     this._recalculateAuditAndDuplicates();
     this._renderTable();
+  }
+
+  _clearElement(el) {
+    if (!el) return;
+    while (el.firstChild) el.removeChild(el.firstChild);
   }
 
   /**
@@ -932,17 +942,29 @@ class CrawlerDashboard {
     this.dom.robotsSitemapsCount.textContent = this.robotsInfo?.sitemaps?.length || 0;
     this.dom.robotsDisallowCount.textContent = this.robotsInfo?.disallows?.length || this.robotsInfo?.disallow?.length || 0;
 
+    this._clearElement(this.dom.sitemapList);
     if (this.sitemapsList.length === 0) {
-      this.dom.sitemapList.innerHTML = '<li class="sitemap-list-empty">No sitemaps discovered on this domain. Crawling website directly via HTML links.</li>';
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'sitemap-list-empty';
+      emptyLi.textContent = 'No sitemaps discovered on this domain. Crawling website directly via HTML links.';
+      this.dom.sitemapList.appendChild(emptyLi);
       return;
     }
 
-    this.dom.sitemapList.innerHTML = this.sitemapsList.map(sm => `
-      <li class="sitemap-list-item">
-        <span>${sm.url}</span>
-        <span class="badge badge-neutral">${sm.urlsCount} URLs (${sm.type})</span>
-      </li>
-    `).join('');
+    this.sitemapsList.forEach(sm => {
+      const li = document.createElement('li');
+      li.className = 'sitemap-list-item';
+
+      const spanUrl = document.createElement('span');
+      spanUrl.textContent = sm.url;
+
+      const spanBadge = document.createElement('span');
+      spanBadge.className = 'badge badge-neutral';
+      spanBadge.textContent = `${sm.urlsCount} URLs (${sm.type})`;
+
+      li.append(spanUrl, spanBadge);
+      this.dom.sitemapList.appendChild(li);
+    });
   }
 
   /**
@@ -959,26 +981,17 @@ class CrawlerDashboard {
       );
     }
 
+    // Type filter
+    if (this.typeFilter && this.typeFilter !== 'all') {
+      list = list.filter(p => p.pageType === this.typeFilter);
+    }
+
     // Status filter
-    if (this.statusFilter !== 'all') {
+    if (this.statusFilter && this.statusFilter !== 'all') {
       list = list.filter(p => p.status === this.statusFilter);
     }
 
-    // Page Type filter
-    if (this.pageTypeFilter !== 'all') {
-      list = list.filter(p => p.pageType === this.pageTypeFilter);
-    }
-
-    // HTTP code filter
-    if (this.httpCodeFilter !== 'all') {
-      if (this.httpCodeFilter === '200') list = list.filter(p => p.httpStatus === 200);
-      else if (this.httpCodeFilter === '3xx') list = list.filter(p => p.httpStatus >= 300 && p.httpStatus < 400);
-      else if (this.httpCodeFilter === '404') list = list.filter(p => p.httpStatus === 404);
-      else if (this.httpCodeFilter === '4xx') list = list.filter(p => p.httpStatus >= 400 && p.httpStatus < 500);
-      else if (this.httpCodeFilter === '5xx') list = list.filter(p => p.httpStatus >= 500);
-    }
-
-    // Sort
+    // Sorting
     list.sort((a, b) => {
       let valA = a[this.sortField];
       let valB = b[this.sortField];
@@ -987,27 +1000,35 @@ class CrawlerDashboard {
       if (valB === undefined || valB === null) valB = '';
 
       if (typeof valA === 'string') {
-        return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        valA = valA.toLowerCase();
+        valB = String(valB).toLowerCase();
+        return this.sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }
-      return this.sortAsc ? (valA - valB) : (valB - valA);
+
+      return this.sortDirection === 'asc' ? valA - valB : valB - valA;
     });
 
     return list;
   }
 
   /**
-   * Renders the live URL table with pagination.
+   * Renders the current page of crawled URLs in the data table.
    */
   _renderTable() {
     const filtered = this._getFilteredPages();
     const totalCount = filtered.length;
 
+    this._clearElement(this.dom.urlsTableBody);
+
     if (totalCount === 0) {
-      this.dom.urlsTableBody.innerHTML = `
-        <tr class="empty-table-row">
-          <td colspan="9">${this.crawledPages.length === 0 ? 'No crawled pages yet.' : 'No pages match current filters.'}</td>
-        </tr>
-      `;
+      const tr = document.createElement('tr');
+      tr.className = 'empty-table-row';
+      const td = document.createElement('td');
+      td.colSpan = 9;
+      td.textContent = this.crawledPages.length === 0 ? 'No crawled pages yet.' : 'No pages match current filters.';
+      tr.appendChild(td);
+      this.dom.urlsTableBody.appendChild(tr);
+
       this.dom.paginationInfo.textContent = 'Showing 0-0 of 0 URLs';
       this.dom.btnPrevPage.disabled = true;
       this.dom.btnNextPage.disabled = true;
@@ -1018,34 +1039,88 @@ class CrawlerDashboard {
     const endIndex = Math.min(startIndex + this.pageSize, totalCount);
     const visiblePages = filtered.slice(startIndex, endIndex);
 
-    this.dom.urlsTableBody.innerHTML = visiblePages.map((page, idx) => {
+    visiblePages.forEach((page, idx) => {
       const rowNum = startIndex + idx + 1;
-      const statusBadge = this._getStatusBadge(page);
-      const typeBadge = `<span class="badge ${page.pageTypeBadgeClass || 'badge-neutral'}">${page.pageTypeLabel || 'Standard'}</span>`;
-      const httpCodeBadge = page.httpStatus ? `<span class="badge ${page.httpStatus === 200 ? 'badge-success' : 'badge-danger'}">${page.httpStatus}</span>` : '<span class="text-subtle">-</span>';
+      const tr = document.createElement('tr');
 
-      return `
-        <tr>
-          <td>${rowNum}</td>
-          <td>${statusBadge}</td>
-          <td>${typeBadge}</td>
-          <td>${httpCodeBadge}</td>
-          <td class="table-url-cell" title="${page.url}">
-            <a href="${page.url}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none;">
-              ${page.url}
-            </a>
-          </td>
-          <td class="table-title-cell" title="${page.title || ''}">${page.title || '<span class="text-subtle">(None)</span>'}</td>
-          <td>${page.wordCount ?? '-'}</td>
-          <td>${page.responseTimeMs ? `${page.responseTimeMs} ms` : '-'}</td>
-          <td style="text-align: center;">
-            <button class="btn-xs btn-outline btn-inspect-row" data-url="${page.url}">
-              Inspect
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+      // Col 1: Row #
+      const td1 = document.createElement('td');
+      td1.textContent = rowNum;
+
+      // Col 2: Status Badge
+      const td2 = document.createElement('td');
+      const statusBadge = document.createElement('span');
+      statusBadge.className = `badge ${page.status === 'success' ? 'badge-success' : (page.status === 'failed' ? 'badge-danger' : 'badge-neutral')}`;
+      statusBadge.textContent = page.status ? page.status.toUpperCase() : 'OK';
+      td2.appendChild(statusBadge);
+
+      // Col 3: Page Type
+      const td3 = document.createElement('td');
+      const typeBadge = document.createElement('span');
+      typeBadge.className = `badge ${page.pageTypeBadgeClass || 'badge-neutral'}`;
+      typeBadge.textContent = page.pageTypeLabel || 'Standard';
+      td3.appendChild(typeBadge);
+
+      // Col 4: HTTP Status Code
+      const td4 = document.createElement('td');
+      if (page.httpStatus) {
+        const httpBadge = document.createElement('span');
+        httpBadge.className = `badge ${page.httpStatus === 200 ? 'badge-success' : 'badge-danger'}`;
+        httpBadge.textContent = page.httpStatus;
+        td4.appendChild(httpBadge);
+      } else {
+        const spanSubtle = document.createElement('span');
+        spanSubtle.className = 'text-subtle';
+        spanSubtle.textContent = '-';
+        td4.appendChild(spanSubtle);
+      }
+
+      // Col 5: URL
+      const td5 = document.createElement('td');
+      td5.className = 'table-url-cell';
+      td5.title = page.url || '';
+      const aUrl = document.createElement('a');
+      aUrl.href = page.url || '#';
+      aUrl.target = '_blank';
+      aUrl.rel = 'noopener noreferrer';
+      aUrl.style.color = 'var(--primary)';
+      aUrl.style.textDecoration = 'none';
+      aUrl.textContent = page.url || '';
+      td5.appendChild(aUrl);
+
+      // Col 6: Title
+      const td6 = document.createElement('td');
+      td6.className = 'table-title-cell';
+      td6.title = page.title || '';
+      if (page.title) {
+        td6.textContent = page.title;
+      } else {
+        const spanNone = document.createElement('span');
+        spanNone.className = 'text-subtle';
+        spanNone.textContent = '(None)';
+        td6.appendChild(spanNone);
+      }
+
+      // Col 7: Word Count
+      const td7 = document.createElement('td');
+      td7.textContent = page.wordCount ?? '-';
+
+      // Col 8: Latency
+      const td8 = document.createElement('td');
+      td8.textContent = page.responseTimeMs ? `${page.responseTimeMs} ms` : '-';
+
+      // Col 9: Action
+      const td9 = document.createElement('td');
+      td9.style.textAlign = 'center';
+      const btnInspect = document.createElement('button');
+      btnInspect.className = 'btn-xs btn-outline btn-inspect-row';
+      btnInspect.dataset.url = page.url;
+      btnInspect.textContent = 'Inspect';
+      td9.appendChild(btnInspect);
+
+      tr.append(td1, td2, td3, td4, td5, td6, td7, td8, td9);
+      this.dom.urlsTableBody.appendChild(tr);
+    });
 
     // Attach row inspection handlers
     this.dom.urlsTableBody.querySelectorAll('.btn-inspect-row').forEach(btn => {
@@ -1236,6 +1311,7 @@ class CrawlerDashboard {
   }
 
   _renderDupContainer(container, groupMap, label) {
+    this._clearElement(container);
     const duplicates = [];
     groupMap.forEach((urls, key) => {
       if (urls.length > 1 && key.trim()) {
@@ -1244,18 +1320,32 @@ class CrawlerDashboard {
     });
 
     if (duplicates.length === 0) {
-      container.innerHTML = `<p class="text-muted">No duplicate ${label.toLowerCase()}s detected.</p>`;
+      const p = document.createElement('p');
+      p.className = 'text-muted';
+      p.textContent = `No duplicate ${label.toLowerCase()}s detected.`;
+      container.appendChild(p);
       return;
     }
 
-    container.innerHTML = duplicates.map(item => `
-      <div class="dup-group-box">
-        <div class="dup-group-title">${label}: "${item.key}" (${item.urls.length} pages)</div>
-        <ul class="dup-url-list">
-          ${item.urls.map(u => `<li>${u}</li>`).join('')}
-        </ul>
-      </div>
-    `).join('');
+    duplicates.forEach(item => {
+      const box = document.createElement('div');
+      box.className = 'dup-group-box';
+
+      const title = document.createElement('div');
+      title.className = 'dup-group-title';
+      title.textContent = `${label}: "${item.key}" (${item.urls.length} pages)`;
+
+      const ul = document.createElement('ul');
+      ul.className = 'dup-url-list';
+      item.urls.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = u;
+        ul.appendChild(li);
+      });
+
+      box.append(title, ul);
+      container.appendChild(box);
+    });
   }
 
   /**
@@ -1271,7 +1361,11 @@ class CrawlerDashboard {
     // Overview Tab
     this.dom.modalMetaTitle.textContent = page.title || '(None)';
     if (this.dom.modalOverviewPageType) {
-      this.dom.modalOverviewPageType.innerHTML = `<span class="badge ${page.pageTypeBadgeClass || 'badge-neutral'}">${page.pageTypeLabel || 'Standard'}</span>`;
+      this._clearElement(this.dom.modalOverviewPageType);
+      const spanType = document.createElement('span');
+      spanType.className = `badge ${page.pageTypeBadgeClass || 'badge-neutral'}`;
+      spanType.textContent = page.pageTypeLabel || 'Standard';
+      this.dom.modalOverviewPageType.appendChild(spanType);
     }
     this.dom.modalMetaDesc.textContent = page.metadata?.description || '(None)';
     this.dom.modalMetaCanonical.textContent = page.metadata?.canonical || '(None)';
@@ -1299,18 +1393,35 @@ class CrawlerDashboard {
     if (legal.disclaimerUrl) legalItems.push({ label: 'Legal / Disclaimer', url: legal.disclaimerUrl, type: 'Legal' });
 
     if (this.dom.modalLegalLinksList) {
+      this._clearElement(this.dom.modalLegalLinksList);
       if (legalItems.length === 0) {
-        this.dom.modalLegalLinksList.innerHTML = '<p class="text-muted" style="font-size: 12px;">No dedicated policy URLs extracted from this page.</p>';
+        const p = document.createElement('p');
+        p.className = 'text-muted';
+        p.style.fontSize = '12px';
+        p.textContent = 'No dedicated policy URLs extracted from this page.';
+        this.dom.modalLegalLinksList.appendChild(p);
       } else {
-        this.dom.modalLegalLinksList.innerHTML = legalItems.map(item => `
-          <div class="policy-link-item">
-            <div>
-              <strong>${item.label}:</strong>
-              <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>
-            </div>
-            <span class="badge badge-neutral">${item.type}</span>
-          </div>
-        `).join('');
+        legalItems.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'policy-link-item';
+
+          const content = document.createElement('div');
+          const strong = document.createElement('strong');
+          strong.textContent = `${item.label}: `;
+          const a = document.createElement('a');
+          a.href = item.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = item.url;
+          content.append(strong, a);
+
+          const badge = document.createElement('span');
+          badge.className = 'badge badge-neutral';
+          badge.textContent = item.type;
+
+          div.append(content, badge);
+          this.dom.modalLegalLinksList.appendChild(div);
+        });
       }
     }
 
@@ -1318,15 +1429,35 @@ class CrawlerDashboard {
     const emails = page.contactInfo?.emails || [];
     if (this.dom.modalEmailsCount) this.dom.modalEmailsCount.textContent = emails.length;
     if (this.dom.modalEmailsList) {
+      this._clearElement(this.dom.modalEmailsList);
       if (emails.length === 0) {
-        this.dom.modalEmailsList.innerHTML = '<li class="text-muted" style="font-size: 12px;">No email addresses detected.</li>';
+        const li = document.createElement('li');
+        li.className = 'text-muted';
+        li.style.fontSize = '12px';
+        li.textContent = 'No email addresses detected.';
+        this.dom.modalEmailsList.appendChild(li);
       } else {
-        this.dom.modalEmailsList.innerHTML = emails.map(email => `
-          <li class="contact-chip">
-            <span><a href="mailto:${email}" style="color: var(--primary); text-decoration: none;">${email}</a></span>
-            <button class="btn-copy-chip" data-copy="${email}" title="Copy email">Copy</button>
-          </li>
-        `).join('');
+        emails.forEach(email => {
+          const li = document.createElement('li');
+          li.className = 'contact-chip';
+
+          const span = document.createElement('span');
+          const a = document.createElement('a');
+          a.href = `mailto:${email}`;
+          a.style.color = 'var(--primary)';
+          a.style.textDecoration = 'none';
+          a.textContent = email;
+          span.appendChild(a);
+
+          const btn = document.createElement('button');
+          btn.className = 'btn-copy-chip';
+          btn.dataset.copy = email;
+          btn.title = 'Copy email';
+          btn.textContent = 'Copy';
+
+          li.append(span, btn);
+          this.dom.modalEmailsList.appendChild(li);
+        });
       }
     }
 
@@ -1334,15 +1465,35 @@ class CrawlerDashboard {
     const phones = page.contactInfo?.phones || [];
     if (this.dom.modalPhonesCount) this.dom.modalPhonesCount.textContent = phones.length;
     if (this.dom.modalPhonesList) {
+      this._clearElement(this.dom.modalPhonesList);
       if (phones.length === 0) {
-        this.dom.modalPhonesList.innerHTML = '<li class="text-muted" style="font-size: 12px;">No phone numbers detected.</li>';
+        const li = document.createElement('li');
+        li.className = 'text-muted';
+        li.style.fontSize = '12px';
+        li.textContent = 'No phone numbers detected.';
+        this.dom.modalPhonesList.appendChild(li);
       } else {
-        this.dom.modalPhonesList.innerHTML = phones.map(phone => `
-          <li class="contact-chip">
-            <span><a href="tel:${phone.replace(/\s+/g, '')}" style="color: var(--primary); text-decoration: none;">${phone}</a></span>
-            <button class="btn-copy-chip" data-copy="${phone}" title="Copy phone">Copy</button>
-          </li>
-        `).join('');
+        phones.forEach(phone => {
+          const li = document.createElement('li');
+          li.className = 'contact-chip';
+
+          const span = document.createElement('span');
+          const a = document.createElement('a');
+          a.href = `tel:${phone.replace(/\s+/g, '')}`;
+          a.style.color = 'var(--primary)';
+          a.style.textDecoration = 'none';
+          a.textContent = phone;
+          span.appendChild(a);
+
+          const btn = document.createElement('button');
+          btn.className = 'btn-copy-chip';
+          btn.dataset.copy = phone;
+          btn.title = 'Copy phone';
+          btn.textContent = 'Copy';
+
+          li.append(span, btn);
+          this.dom.modalPhonesList.appendChild(li);
+        });
       }
     }
 
@@ -1350,15 +1501,29 @@ class CrawlerDashboard {
     const socials = page.contactInfo?.socials || [];
     if (this.dom.modalSocialsCount) this.dom.modalSocialsCount.textContent = socials.length;
     if (this.dom.modalSocialsList) {
+      this._clearElement(this.dom.modalSocialsList);
       if (socials.length === 0) {
-        this.dom.modalSocialsList.innerHTML = '<p class="text-muted" style="font-size: 12px;">No social media links detected.</p>';
+        const p = document.createElement('p');
+        p.className = 'text-muted';
+        p.style.fontSize = '12px';
+        p.textContent = 'No social media links detected.';
+        this.dom.modalSocialsList.appendChild(p);
       } else {
-        this.dom.modalSocialsList.innerHTML = socials.map(s => `
-          <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="social-chip">
-            <strong>${s.platform}:</strong>
-            <span>${s.handle ? `@${s.handle}` : s.url}</span>
-          </a>
-        `).join('');
+        socials.forEach(s => {
+          const a = document.createElement('a');
+          a.href = s.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'social-chip';
+
+          const strong = document.createElement('strong');
+          strong.textContent = `${s.platform}: `;
+          const span = document.createElement('span');
+          span.textContent = s.handle ? `@${s.handle}` : s.url;
+
+          a.append(strong, span);
+          this.dom.modalSocialsList.appendChild(a);
+        });
       }
     }
 
@@ -1395,15 +1560,28 @@ class CrawlerDashboard {
     // Headings Tab
     const headings = page.headings?.list || [];
     this.dom.modalHeadingsCount.textContent = headings.length;
+    this._clearElement(this.dom.modalHeadingsList);
     if (headings.length === 0) {
-      this.dom.modalHeadingsList.innerHTML = '<li class="text-muted">No H1-H6 headings found on this page.</li>';
+      const li = document.createElement('li');
+      li.className = 'text-muted';
+      li.textContent = 'No H1-H6 headings found on this page.';
+      this.dom.modalHeadingsList.appendChild(li);
     } else {
-      this.dom.modalHeadingsList.innerHTML = headings.map(h => `
-        <li class="heading-item" style="padding-left: ${(parseInt(h.level.slice(1), 10) - 1) * 12}px;">
-          <span class="heading-tag">${h.level.toUpperCase()}</span>
-          <span>${h.text}</span>
-        </li>
-      `).join('');
+      headings.forEach(h => {
+        const li = document.createElement('li');
+        li.className = 'heading-item';
+        li.style.paddingLeft = `${(parseInt((h.level || 'h1').slice(1), 10) - 1) * 12}px`;
+
+        const spanTag = document.createElement('span');
+        spanTag.className = 'heading-tag';
+        spanTag.textContent = (h.level || 'H1').toUpperCase();
+
+        const spanText = document.createElement('span');
+        spanText.textContent = h.text || '';
+
+        li.append(spanTag, spanText);
+        this.dom.modalHeadingsList.appendChild(li);
+      });
     }
 
     // Content Tab
@@ -1419,28 +1597,97 @@ class CrawlerDashboard {
     this.dom.modalInternalLinksCount.textContent = internal.length;
     this.dom.modalExternalLinksCount.textContent = external.length;
 
-    this.dom.modalInternalLinksList.innerHTML = internal.length > 0
-      ? internal.map(l => `<li><a href="${l.url}" target="_blank">${l.url}</a> ${l.anchorText ? `["${l.anchorText}"]` : ''}</li>`).join('')
-      : '<li class="text-muted">No internal links.</li>';
+    this._clearElement(this.dom.modalInternalLinksList);
+    if (internal.length > 0) {
+      internal.forEach(l => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = l.url;
+        a.target = '_blank';
+        a.textContent = l.url;
+        li.appendChild(a);
+        if (l.anchorText) {
+          li.appendChild(document.createTextNode(` ["${l.anchorText}"]`));
+        }
+        this.dom.modalInternalLinksList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.className = 'text-muted';
+      li.textContent = 'No internal links.';
+      this.dom.modalInternalLinksList.appendChild(li);
+    }
 
-    this.dom.modalExternalLinksList.innerHTML = external.length > 0
-      ? external.map(l => `<li><a href="${l.url}" target="_blank">${l.url}</a> ${l.anchorText ? `["${l.anchorText}"]` : ''}</li>`).join('')
-      : '<li class="text-muted">No external links.</li>';
+    this._clearElement(this.dom.modalExternalLinksList);
+    if (external.length > 0) {
+      external.forEach(l => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = l.url;
+        a.target = '_blank';
+        a.textContent = l.url;
+        li.appendChild(a);
+        if (l.anchorText) {
+          li.appendChild(document.createTextNode(` ["${l.anchorText}"]`));
+        }
+        this.dom.modalExternalLinksList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement('li');
+      li.className = 'text-muted';
+      li.textContent = 'No external links.';
+      this.dom.modalExternalLinksList.appendChild(li);
+    }
 
     // Images Tab
     const images = page.images || [];
     this.dom.modalImagesCount.textContent = images.length;
+    this._clearElement(this.dom.modalImagesGrid);
     if (images.length === 0) {
-      this.dom.modalImagesGrid.innerHTML = '<p class="text-muted">No images extracted.</p>';
+      const p = document.createElement('p');
+      p.className = 'text-muted';
+      p.textContent = 'No images extracted.';
+      this.dom.modalImagesGrid.appendChild(p);
     } else {
-      this.dom.modalImagesGrid.innerHTML = images.map(img => `
-        <div class="modal-image-card">
-          <img src="${img.url}" class="modal-image-thumb" loading="lazy" onerror="this.src='icons/icon48.png'">
-          <div><strong>Alt:</strong> ${img.alt || '<span class="text-danger">MISSING</span>'}</div>
-          <div><strong>Dimensions:</strong> ${img.width && img.height ? `${img.width}x${img.height}` : 'N/A'}</div>
-          <div style="word-break: break-all;"><a href="${img.url}" target="_blank">${img.url}</a></div>
-        </div>
-      `).join('');
+      images.forEach(img => {
+        const card = document.createElement('div');
+        card.className = 'modal-image-card';
+
+        const imageEl = document.createElement('img');
+        imageEl.src = img.url;
+        imageEl.className = 'modal-image-thumb';
+        imageEl.loading = 'lazy';
+        imageEl.onerror = () => { imageEl.src = 'icons/icon48.png'; };
+
+        const altDiv = document.createElement('div');
+        const altStrong = document.createElement('strong');
+        altStrong.textContent = 'Alt: ';
+        altDiv.appendChild(altStrong);
+        if (img.alt) {
+          altDiv.appendChild(document.createTextNode(img.alt));
+        } else {
+          const spanMissing = document.createElement('span');
+          spanMissing.className = 'text-danger';
+          spanMissing.textContent = 'MISSING';
+          altDiv.appendChild(spanMissing);
+        }
+
+        const dimDiv = document.createElement('div');
+        const dimStrong = document.createElement('strong');
+        dimStrong.textContent = 'Dimensions: ';
+        dimDiv.append(dimStrong, document.createTextNode(img.width && img.height ? `${img.width}x${img.height}` : 'N/A'));
+
+        const linkDiv = document.createElement('div');
+        linkDiv.style.wordBreak = 'break-all';
+        const aImg = document.createElement('a');
+        aImg.href = img.url;
+        aImg.target = '_blank';
+        aImg.textContent = img.url;
+        linkDiv.appendChild(aImg);
+
+        card.append(imageEl, altDiv, dimDiv, linkDiv);
+        this.dom.modalImagesGrid.appendChild(card);
+      });
     }
 
     // Schema Tab
@@ -1546,14 +1793,40 @@ class CrawlerDashboard {
         this.dom.renderedExtractionStatus.textContent = `Extracted successfully (${parsed.wordCount} words, ${parsed.headings.list.length} headings)`;
         this.dom.renderedResultContainer.classList.remove('hidden');
 
-        this.dom.renderedMetaSummary.innerHTML = `
-          <div class="card" style="margin-bottom: 8px;">
-            <div><strong>Page Title:</strong> ${parsed.title || '(None)'}</div>
-            <div><strong>Word Count:</strong> ${parsed.wordCount} words</div>
-            <div><strong>Headings:</strong> H1 (${parsed.headings.byLevel.h1?.length || 0}), H2 (${parsed.headings.byLevel.h2?.length || 0})</div>
-            <div><strong>Internal Links:</strong> ${parsed.links.internal.length} | <strong>Images:</strong> ${parsed.images.length}</div>
-          </div>
-        `;
+        this._clearElement(this.dom.renderedMetaSummary);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.marginBottom = '8px';
+
+        const rowTitle = document.createElement('div');
+        const strongTitle = document.createElement('strong');
+        strongTitle.textContent = 'Page Title: ';
+        rowTitle.append(strongTitle, document.createTextNode(parsed.title || '(None)'));
+
+        const rowWords = document.createElement('div');
+        const strongWords = document.createElement('strong');
+        strongWords.textContent = 'Word Count: ';
+        rowWords.append(strongWords, document.createTextNode(`${parsed.wordCount} words`));
+
+        const rowHeadings = document.createElement('div');
+        const strongHeadings = document.createElement('strong');
+        strongHeadings.textContent = 'Headings: ';
+        rowHeadings.append(strongHeadings, document.createTextNode(`H1 (${parsed.headings?.byLevel?.h1?.length || 0}), H2 (${parsed.headings?.byLevel?.h2?.length || 0})`));
+
+        const rowLinks = document.createElement('div');
+        const strongLinks = document.createElement('strong');
+        strongLinks.textContent = 'Internal Links: ';
+        const strongImgs = document.createElement('strong');
+        strongImgs.textContent = ' | Images: ';
+        rowLinks.append(
+          strongLinks,
+          document.createTextNode(String(parsed.links?.internal?.length || 0)),
+          strongImgs,
+          document.createTextNode(String(parsed.images?.length || 0))
+        );
+
+        card.append(rowTitle, rowWords, rowHeadings, rowLinks);
+        this.dom.renderedMetaSummary.appendChild(card);
         this.dom.renderedDomPreview.value = html.slice(0, 10000) + (html.length > 10000 ? '\n\n...[Truncated preview]...' : '');
       });
     } catch (err) {
