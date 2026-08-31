@@ -185,17 +185,19 @@ export class HtmlParser {
 
   /**
    * Extracts readable text content while eliminating scripts, styling, navbars, footers, cookie banners.
+   * Accurately preserves cut/strikethrough discount prices (e.g. ~~$59.00~~).
    */
   static _extractContent(doc) {
     // Clone document body so we don't mutate other extractions
     const body = doc.body ? doc.body.cloneNode(true) : doc.createElement('body');
 
-    // Selectors to remove
+    // Selectors to remove (preserving form contents like product packages/bundles)
     const selectorsToRemove = [
       'script', 'style', 'noscript', 'iframe', 'svg', 'canvas',
       'nav', 'footer', 'header', 'aside',
       '[hidden]', '[aria-hidden="true"]',
-      'dialog', 'template', 'button', 'select', 'form',
+      'dialog', 'template', 'button', 'select',
+      'input[type="hidden"]', 'input[type="submit"]', 'input[type="button"]',
       '.cookie-banner', '#cookie-banner', '[id*="cookie" i]', '[class*="cookie" i]',
       '[id*="consent" i]', '[class*="consent" i]', '[id*="gdpr" i]', '[class*="gdpr" i]'
     ];
@@ -211,15 +213,18 @@ export class HtmlParser {
       }
     }
 
+    // Preserve and mark cut prices / strikethrough elements
+    this._preserveStrikethroughText(body);
+
     // Extract heading-structured sections and content
     const headingExtraction = this._extractHeadingSections(body);
 
     // Extract raw paragraphs
     const paragraphs = [];
-    const pNodes = body.querySelectorAll('p, article, section, div > p');
+    const pNodes = body.querySelectorAll('p, article, section, div > p, li');
     for (const p of pNodes) {
       const text = p.textContent?.replace(/\s+/g, ' ').trim();
-      if (text && text.length > 15 && !paragraphs.includes(text)) {
+      if (text && text.length > 5 && !paragraphs.includes(text)) {
         paragraphs.push(text);
       }
     }
@@ -246,6 +251,72 @@ export class HtmlParser {
   }
 
   /**
+   * Identifies strikethrough / discounted / cut prices across HTML tags, CSS styles, and pricing classes
+   * and wraps them in Markdown strikethrough syntax (e.g. ~~$59.00~~).
+   * 
+   * @param {HTMLElement} root 
+   */
+  static _preserveStrikethroughText(root) {
+    if (!root) return;
+
+    const strikeSelectors = [
+      'del',
+      's',
+      'strike',
+      '[style*="line-through" i]',
+      '[class*="line-through" i]',
+      '[class*="strikethrough" i]',
+      '[class*="strike-through" i]',
+      '[class*="strike" i]',
+      '[class*="was-price" i]',
+      '[class*="was_price" i]',
+      '[class*="compare-at-price" i]',
+      '[class*="compare_at_price" i]',
+      '[class*="compare-price" i]',
+      '[class*="compare_price" i]',
+      '[class*="old-price" i]',
+      '[class*="old_price" i]',
+      '[class*="original-price" i]',
+      '[class*="original_price" i]',
+      '[class*="list-price" i]',
+      '[class*="list_price" i]',
+      '[class*="crossed-out" i]',
+      '[class*="cross-out" i]',
+      '[class*="cut-price" i]',
+      '[class*="cut_price" i]',
+      '[class*="price--compare" i]',
+      '[class*="price-item--regular" i]',
+      '[aria-label*="regular price" i]',
+      '[aria-label*="original price" i]',
+      '[aria-label*="was" i]',
+      '[aria-label*="strikethrough" i]'
+    ];
+
+    try {
+      const elements = root.querySelectorAll(strikeSelectors.join(', '));
+      for (const el of elements) {
+        // Skip if already processed or inside an already processed strike element
+        if (el.hasAttribute('data-strike-processed') || el.closest('[data-strike-processed]')) {
+          continue;
+        }
+
+        const text = el.textContent?.replace(/\s+/g, ' ').trim();
+        if (text) {
+          // If text is already formatted as ~~...~~ skip
+          if (text.startsWith('~~') && text.endsWith('~~')) {
+            el.setAttribute('data-strike-processed', 'true');
+            continue;
+          }
+          el.setAttribute('data-strike-processed', 'true');
+          el.textContent = `~~${text}~~`;
+        }
+      }
+    } catch (e) {
+      console.warn('[Site Data Crawler] Strike processing error:', e);
+    }
+  }
+
+  /**
    * Extracts text grouped under each heading (H1 through H6) in document order.
    * Excludes images, links, and styling; focuses purely on readable content per heading.
    * 
@@ -260,7 +331,7 @@ export class HtmlParser {
       paragraphs: []
     };
 
-    const elements = body.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre');
+    const elements = body.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre, div, label, tr');
     const seenTexts = new Set();
 
     for (const el of elements) {
@@ -279,14 +350,14 @@ export class HtmlParser {
             paragraphs: []
           };
         }
-      } else if (['p', 'li', 'blockquote', 'pre'].includes(tagName)) {
+      } else if (['p', 'li', 'blockquote', 'pre', 'div', 'label', 'tr'].includes(tagName)) {
         // Skip elements that contain child block elements to avoid duplicate text
-        if (el.querySelector('p, li, blockquote, h1, h2, h3, h4, h5, h6')) {
+        if (el.querySelector('p, li, blockquote, h1, h2, h3, h4, h5, h6, table, ul, ol, div, label')) {
           continue;
         }
 
         const text = el.textContent?.replace(/\s+/g, ' ').trim();
-        if (text && text.length > 5 && !seenTexts.has(text)) {
+        if (text && text.length >= 2 && !seenTexts.has(text)) {
           seenTexts.add(text);
           currentSection.paragraphs.push(text);
         }

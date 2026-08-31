@@ -896,6 +896,7 @@ class CrawlerDashboard {
   }
 
   _formatCrawlMode(mode) {
+    if (mode === 'single_page') return 'Single Page Only';
     if (mode === 'sitemap') return 'Sitemap Only';
     if (mode === 'links_only') return 'Links Only';
     return 'Sitemap + Links';

@@ -64,25 +64,45 @@ site-data-crawler/
 
 ## 🛠️ How to Test on a Public Website
 
-1. Click the **Site Data Crawler** icon in your browser toolbar to open the popup.
-2. Enter a target website (e.g. `https://example.com` or any public blog/news site), or click **Use Active Tab** to test your current page.
-3. Choose your crawl presets:
+### A. Quick Single-Page Content Crawl & Direct Download (In Popup)
+1. Click the **Site Data Crawler** icon in your browser toolbar. The active tab URL is auto-detected!
+2. Ensure the **Single Page** mode tab is selected (or choose `Single Page` in Crawl Mode).
+3. Click **Extract Single Page**.
+4. The page is instantly parsed directly inside the popup in milliseconds with:
+   - Live metrics: Word count, Heading hierarchy (H1-H6), Links count, Images, Contact info (emails/phones), and Legal policies detected.
+   - Interactive content & heading preview drawer.
+5. **Directly Download** your desired format right from the extension popup:
+   - 📝 **Markdown (.md)** — Clean H1–H6 structured Markdown.
+   - 📄 **Clean Text (.txt)** — Heading-organized readable text.
+   - 📊 **Spreadsheet CSV (.csv)** — Full SEO metadata & metrics.
+   - ⚙️ **Full JSON (.json)** — Complete structured JSON payload.
+   - 🌐 **Clean HTML (.html)** — Clean standalone readable HTML document.
+   - 📋 **Copy to Clipboard** — Instant 1-click clipboard copy.
+
+### B. Deep Multi-Page Crawl (Full Dashboard)
+1. In the popup, click the **Multi-Page Crawl** tab (or choose `Sitemap + Discovered Links`).
+2. Choose your crawl presets:
    - **Max Pages:** `10`, `50`, `100`, `500`, or `Custom`
    - **Crawl Delay:** `0ms` (Fast), `250ms`, `500ms` (Safe/Default), `1000ms` (Polite)
    - **Crawl Mode:** `Sitemap + Discovered Links`, `Sitemap Only`, or `Links Only`
-4. Click **Start Crawl**.
-5. The full-page dashboard opens automatically, performing:
+3. Click **Start Deep Crawl**.
+4. The full-page dashboard opens automatically, performing:
    - Automated discovery of `/robots.txt`, `/sitemap.xml`, `/sitemap_index.xml`, and `/wp-sitemap.xml`.
    - Recursive resolution of child sitemaps in sitemap indexes.
    - Parallel, rate-limited page fetching with live progress visualization.
    - Real-time page inspection with the **Inspect** button on any table row.
-6. When crawling completes, click the **Export & Reports** tab to download your audit in **TXT**, **CSV**, **JSON**, or **XML Sitemap** format.
+5. When crawling completes, click the **Export & Reports** tab to download your audit in **TXT**, **CSV**, **JSON**, or **XML Sitemap** format.
 
 ---
 
 ## 🔍 Key Features
 
-### 1. Recursive Sitemap Discovery
+### 1. In-Extension Single Page Content Crawler & Direct Download
+- 1-click instant extraction of any target URL or active browser tab without leaving the popup.
+- Live DOM extraction for SPAs and JavaScript-rendered pages via active tab scripting.
+- Direct multi-format downloads (.md, .txt, .csv, .json, .html) and clipboard copy directly from the extension popup.
+
+### 2. Recursive Sitemap Discovery
 - Auto-detects `robots.txt` and extracts `Sitemap:` directives.
 - Discovers standard sitemaps (`sitemap.xml`, `sitemap_index.xml`, `wp-sitemap.xml`).
 - Handles `<sitemapindex>` hierarchies recursively.

@@ -7,6 +7,7 @@ import { getSettings, saveSettings, clearCrawlData, getStorageBytesUsed, DEFAULT
 document.addEventListener('DOMContentLoaded', async () => {
   // Elements
   const optCrawlMode = document.getElementById('optCrawlMode');
+  const optDefaultExportFormat = document.getElementById('optDefaultExportFormat');
   const optMaxPages = document.getElementById('optMaxPages');
   const optCrawlDelay = document.getElementById('optCrawlDelay');
   const optConcurrency = document.getElementById('optConcurrency');
@@ -65,6 +66,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function populateForm(s) {
     optCrawlMode.value = s.crawlMode || 'sitemap_and_links';
+    if (optDefaultExportFormat) {
+      optDefaultExportFormat.value = s.defaultExportFormat || 'markdown';
+    }
     optMaxPages.value = s.maxPages || 100;
     optCrawlDelay.value = s.crawlDelay ?? 500;
     optConcurrency.value = s.concurrency || 3;
@@ -95,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const updated = {
       crawlMode: optCrawlMode.value,
+      defaultExportFormat: optDefaultExportFormat ? optDefaultExportFormat.value : 'markdown',
       maxPages: parseInt(optMaxPages.value, 10) || 100,
       crawlDelay: parseInt(optCrawlDelay.value, 10) || 0,
       concurrency: parseInt(optConcurrency.value, 10) || 3,

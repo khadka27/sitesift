@@ -407,6 +407,110 @@ export class Exporter {
   }
 
   /**
+   * Generates a clean standalone HTML document from extracted single page content.
+   * 
+   * @param {Object} page 
+   * @returns {string} HTML string
+   */
+  static generateSinglePageHtml(page) {
+    const title = page.title || page.url || 'Extracted Page Content';
+    const sections = page.content?.headingSections || [];
+    const dateStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    const formatContent = (text) => {
+      if (!text) return '';
+      const escaped = Exporter._escapeXml(text);
+      return escaped.replace(/~~([^~]+)~~/g, '<del class="cut-price">$1</del>');
+    };
+
+    let sectionsHtml = '';
+    if (sections.length > 0) {
+      sectionsHtml = sections.map(sec => {
+        const tag = /^h[1-6]$/i.test(sec.level) ? sec.level.toLowerCase() : 'h2';
+        const headingFormatted = formatContent(sec.heading);
+        const paras = (sec.paragraphs || []).map(p => `<p>${formatContent(p)}</p>`).join('\n      ');
+        return `    <section class="content-section">
+      <${tag}>${headingFormatted}</${tag}>
+      ${paras || '<p class="empty">(No paragraph text)</p>'}
+    </section>`;
+      }).join('\n\n');
+    } else if (page.content?.cleanText) {
+      sectionsHtml = `    <section class="content-section">
+      <h2>Content</h2>
+      <p>${formatContent(page.content.cleanText)}</p>
+    </section>`;
+    } else {
+      sectionsHtml = `    <p class="empty">No content extracted.</p>`;
+    }
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${Exporter._escapeXml(title)}</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    h1 { color: var(--accent); font-size: 28px; margin-bottom: 8px; }
+    .meta-bar { font-size: 13px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+    .meta-bar span strong { color: var(--text); }
+    .content-section { margin-bottom: 24px; background: var(--card-bg); padding: 18px 22px; border-radius: 8px; border: 1px solid var(--border); }
+    .content-section h1, .content-section h2, .content-section h3 { margin-top: 0; color: #e2e8f0; }
+    p { margin: 10px 0; color: #cbd5e1; font-size: 15px; }
+    .empty { color: var(--text-muted); font-style: italic; }
+    del, s, strike, .cut-price {
+      text-decoration: line-through;
+      color: #94a3b8;
+      opacity: 0.8;
+      background: rgba(244, 63, 94, 0.12);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+    footer { margin-top: 40px; font-size: 12px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border); padding-top: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>${formatContent(title)}</h1>
+    <div class="meta-bar">
+      <span>URL: <a href="${Exporter._escapeXml(page.url)}" target="_blank" style="color: var(--accent);">${Exporter._escapeXml(page.url)}</a></span>
+      <span>Words: <strong>${page.wordCount ?? 0}</strong></span>
+      <span>Extracted: <strong>${dateStr}</strong></span>
+    </div>
+  </header>
+  <main>
+${sectionsHtml}
+  </main>
+  <footer>
+    Extracted with Site Data Crawler • 100% Client-Side Privacy
+  </footer>
+</body>
+</html>`;
+  }
+
+  /**
    * Triggers download of text content to the user's browser.
    * 
    * @param {string} filename 

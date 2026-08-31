@@ -8,7 +8,8 @@ export const DEFAULT_SETTINGS = {
   crawlDelay: 500,
   concurrency: 3,
   timeoutMs: 15000,
-  crawlMode: 'sitemap_and_links', // 'sitemap' | 'sitemap_and_links' | 'links_only'
+  crawlMode: 'sitemap_and_links', // 'single_page' | 'sitemap_and_links' | 'sitemap' | 'links_only'
+  defaultExportFormat: 'markdown', // 'markdown' | 'txt' | 'csv' | 'json' | 'html'
   sameDomainOnly: true,
   includeSubdomains: false,
   followDiscoveredLinks: true,
