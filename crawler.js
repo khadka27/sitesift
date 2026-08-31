@@ -5,6 +5,7 @@
 import { SitemapParser } from './utils/sitemap-parser.js';
 import { HtmlParser } from './utils/html-parser.js';
 import { Exporter } from './utils/exporter.js';
+import { smartFetch } from './utils/fetcher.js';
 import { getSettings, saveSettings, saveRecentSession, saveLastUrl, getLastUrl } from './utils/storage.js';
 import {
   normalizeUrl,
@@ -72,10 +73,10 @@ class CrawlerDashboard {
     this.settings = await getSettings();
     this._populateSettingsModal(this.settings);
 
-    // Read query params from URL (e.g. crawler.html?targetUrl=...&autoStart=true)
+    // Read query params from URL (e.g. crawler.html?url=...&autoStart=true)
     const urlParams = new URLSearchParams(window.location.search);
-    const paramUrl = urlParams.get('targetUrl');
-    const autoStart = urlParams.get('autoStart') === 'true';
+    const paramUrl = urlParams.get('targetUrl') || urlParams.get('url') || urlParams.get('site');
+    const autoStart = urlParams.get('autoStart') === 'true' || urlParams.get('start') === 'true';
 
     if (paramUrl) {
       this.dom.targetUrlInput.value = paramUrl;
@@ -85,10 +86,12 @@ class CrawlerDashboard {
     } else {
       let detectedUrl = '';
       try {
-        const tabs = await chrome.tabs.query({ lastFocusedWindow: true });
-        const webTab = tabs.find(t => t.url && /^https?:\/\//i.test(t.url) && !t.url.includes(chrome.runtime.id));
-        if (webTab && webTab.url) {
-          detectedUrl = webTab.url;
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+          const tabs = await chrome.tabs.query({ lastFocusedWindow: true });
+          const webTab = tabs.find(t => t.url && /^https?:\/\//i.test(t.url) && !t.url.includes(chrome.runtime?.id || ''));
+          if (webTab && webTab.url) {
+            detectedUrl = webTab.url;
+          }
         }
       } catch {}
 
@@ -291,11 +294,20 @@ class CrawlerDashboard {
     // Use active tab
     this.dom.btnFetchCurrentTab.addEventListener('click', async () => {
       try {
-        const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-        if (tabs && tabs[0] && tabs[0].url && /^https?:\/\//i.test(tabs[0].url)) {
-          this.dom.targetUrlInput.value = tabs[0].url;
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+          const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+          if (tabs && tabs[0] && tabs[0].url && /^https?:\/\//i.test(tabs[0].url)) {
+            this.dom.targetUrlInput.value = tabs[0].url;
+            return;
+          }
         }
       } catch {}
+
+      // Standalone web mode fallback prompt
+      const entered = prompt('Enter a website URL to crawl:', this.dom.targetUrlInput.value || 'https://');
+      if (entered) {
+        this.dom.targetUrlInput.value = entered.trim();
+      }
     });
 
     // Toggle sitemap panel
@@ -625,23 +637,17 @@ class CrawlerDashboard {
     const startTime = performance.now();
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.settings.timeoutMs || 15000);
-
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
+      const response = await smartFetch(url, {
+        timeoutMs: this.settings.timeoutMs || 15000,
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
       });
-      clearTimeout(timeoutId);
 
       const latency = Math.round(performance.now() - startTime);
       this.totalResponseTimeMs += latency;
       this.totalResponseCount++;
 
-      const contentType = response.headers.get('content-type') || '';
-      const isHtml = contentType.includes('text/html') || contentType.includes('application/xhtml+xml');
+      const contentType = response.contentType || '';
+      const isHtml = !contentType || contentType.includes('text/html') || contentType.includes('application/xhtml+xml') || !contentType.includes('image/');
 
       if (!response.ok) {
         this._recordPageResult({
@@ -671,7 +677,7 @@ class CrawlerDashboard {
         return;
       }
 
-      const html = await response.text();
+      const html = response.text;
       const parsedData = HtmlParser.parse(html, url, {
         extractImages: this.settings.extractImages,
         extractLinks: this.settings.extractLinks,
@@ -922,11 +928,11 @@ class CrawlerDashboard {
    */
   _renderSitemapList() {
     this.dom.sitemapsFoundCount.textContent = this.sitemapsList.length;
-    this.dom.robotsSitemapsCount.textContent = this.robotsInfo.sitemaps.length;
-    this.dom.robotsDisallowCount.textContent = this.robotsInfo.disallows.length;
+    this.dom.robotsSitemapsCount.textContent = this.robotsInfo?.sitemaps?.length || 0;
+    this.dom.robotsDisallowCount.textContent = this.robotsInfo?.disallows?.length || this.robotsInfo?.disallow?.length || 0;
 
     if (this.sitemapsList.length === 0) {
-      this.dom.sitemapList.innerHTML = '<li class="sitemap-list-empty">No sitemaps found. Crawling links directly.</li>';
+      this.dom.sitemapList.innerHTML = '<li class="sitemap-list-empty">No sitemaps discovered on this domain. Crawling website directly via HTML links.</li>';
       return;
     }
 

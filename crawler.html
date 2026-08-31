@@ -12,7 +12,9 @@
     <!-- Top Navigation Header -->
     <header class="top-nav">
       <div class="nav-brand">
-        <img src="icons/icon32.png" alt="Logo" class="logo-img" width="28" height="28">
+        <div class="brand-logo-badge">
+          <img src="icons/icon48.png" alt="Spider Logo" class="logo-img" width="26" height="26">
+        </div>
         <div>
           <h1 class="logo-title">Site Data Crawler</h1>
           <span class="logo-tag">SEO & Content Extraction Engine</span>
@@ -355,88 +357,147 @@
         <!-- TAB 4: Export & Reports -->
         <div class="tab-content" id="tab-export">
           <div class="export-grid">
-            <div class="card export-card" style="border-left: 4px solid var(--primary);">
-              <div class="export-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="21" y1="10" x2="3" y2="10"></line>
-                  <line x1="21" y1="6" x2="3" y2="6"></line>
-                  <line x1="21" y1="14" x2="3" y2="14"></line>
-                  <line x1="21" y1="18" x2="3" y2="18"></line>
-                </svg>
+            <!-- Card 1: Heading Structured -->
+            <div class="card export-card">
+              <div class="export-card-header">
+                <div class="export-card-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="21" y1="10" x2="3" y2="10"></line>
+                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                    <line x1="21" y1="18" x2="3" y2="18"></line>
+                  </svg>
+                </div>
+                <div class="export-card-header-text">
+                  <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                    <h3 class="export-card-title">Structured Headings</h3>
+                    <span class="badge badge-primary">.TXT / .MD</span>
+                  </div>
+                  <span class="text-subtle" style="font-size: 11px;">H1–H6 Content Hierarchy</span>
+                </div>
               </div>
-              <h3 class="export-card-title">Heading-Structured Text Content</h3>
-              <p class="export-card-desc">Exports all pages' readable text organized strictly by headings (H1–H6) in pure plain text. No images, no media clutter, only clean structured content.</p>
-              <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 10px;">
+              <p class="export-card-desc">Exports all pages' readable text organized strictly by headings (H1–H6) in pure plain text. No images, no boilerplate, ready for LLMs.</p>
+              <div class="export-card-actions">
                 <button id="btnExportHeadingTxt" class="btn btn-primary export-btn">
-                  Download Headings + Content (.TXT)
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download Headings (.TXT)
                 </button>
                 <button id="btnExportHeadingMd" class="btn btn-secondary export-btn">
-                  Download Markdown by Headings (.MD)
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download Markdown (.MD)
                 </button>
               </div>
             </div>
 
+            <!-- Card 2: Full Audit Report -->
             <div class="card export-card">
-              <div class="export-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
+              <div class="export-card-header">
+                <div class="export-card-icon" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.35); color: #c084fc;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </div>
+                <div class="export-card-header-text">
+                  <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                    <h3 class="export-card-title">SEO Audit Report</h3>
+                    <span class="badge badge-legal">.TXT</span>
+                  </div>
+                  <span class="text-subtle" style="font-size: 11px;">Complete ASCII Diagnostic</span>
+                </div>
               </div>
-              <h3 class="export-card-title">Comprehensive Audit Report (.TXT)</h3>
-              <p class="export-card-desc">Detailed ASCII audit report formatted page-by-page with SEO metadata, headings, link counts, images, and previews.</p>
-              <button id="btnExportTxt" class="btn btn-primary export-btn">
-                Download Full Audit .TXT
-              </button>
+              <p class="export-card-desc">Detailed ASCII audit report formatted page-by-page with SEO metadata, headings, link counts, images, duplicate issues, and status codes.</p>
+              <div class="export-card-actions">
+                <button id="btnExportTxt" class="btn btn-primary export-btn" style="background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download Full Audit (.TXT)
+                </button>
+              </div>
             </div>
 
+            <!-- Card 3: Spreadsheet CSV -->
             <div class="card export-card">
-              <div class="export-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="8" y1="13" x2="16" y2="13"></line>
-                  <line x1="8" y1="17" x2="16" y2="17"></line>
-                </svg>
+              <div class="export-card-header">
+                <div class="export-card-icon" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #34d399;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="8" y1="13" x2="16" y2="13"></line>
+                    <line x1="8" y1="17" x2="16" y2="17"></line>
+                  </svg>
+                </div>
+                <div class="export-card-header-text">
+                  <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                    <h3 class="export-card-title">Spreadsheet CSV</h3>
+                    <span class="badge badge-success">.CSV</span>
+                  </div>
+                  <span class="text-subtle" style="font-size: 11px;">Excel & Sheets Dataset</span>
+                </div>
               </div>
-              <h3 class="export-card-title">Spreadsheet CSV Export</h3>
-              <p class="export-card-desc">Standard comma-separated table with SEO metadata, status codes, word counts, and heading structures ready for Excel/Sheets.</p>
-              <button id="btnExportCsv" class="btn btn-primary export-btn">
-                Download .CSV File
-              </button>
+              <p class="export-card-desc">Standard comma-separated table with SEO metadata, contact info, legal policy links, word counts, response times, and heading summaries.</p>
+              <div class="export-card-actions">
+                <button id="btnExportCsv" class="btn btn-primary export-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download Spreadsheet (.CSV)
+                </button>
+              </div>
             </div>
 
+            <!-- Card 4: JSON Dataset -->
             <div class="card export-card">
-              <div class="export-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="9 10 12 13 9 16"></polyline>
-                  <polyline points="15 10 12 13 15 16"></polyline>
-                </svg>
+              <div class="export-card-header">
+                <div class="export-card-icon" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.35); color: #38bdf8;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="9 10 12 13 9 16"></polyline>
+                    <polyline points="15 10 12 13 15 16"></polyline>
+                  </svg>
+                </div>
+                <div class="export-card-header-text">
+                  <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                    <h3 class="export-card-title">Structured JSON</h3>
+                    <span class="badge badge-privacy">.JSON</span>
+                  </div>
+                  <span class="text-subtle" style="font-size: 11px;">Developer & Pipeline Feed</span>
+                </div>
               </div>
-              <h3 class="export-card-title">Structured JSON Export</h3>
-              <p class="export-card-desc">Complete JSON dataset with parsed DOM structures, JSON-LD schemas, images metadata, link arrays, and crawl diagnostics.</p>
-              <button id="btnExportJson" class="btn btn-primary export-btn">
-                Download .JSON Dataset
-              </button>
+              <p class="export-card-desc">Complete JSON dataset with parsed DOM structures, JSON-LD schemas, images metadata, contact intelligence, and link arrays.</p>
+              <div class="export-card-actions">
+                <button id="btnExportJson" class="btn btn-primary export-btn" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download Dataset (.JSON)
+                </button>
+              </div>
             </div>
 
+            <!-- Card 5: XML Sitemap -->
             <div class="card export-card">
-              <div class="export-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                  <polyline points="2 17 12 22 22 17"></polyline>
-                  <polyline points="2 12 12 17 22 12"></polyline>
-                </svg>
+              <div class="export-card-header">
+                <div class="export-card-icon" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                </div>
+                <div class="export-card-header-text">
+                  <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                    <h3 class="export-card-title">XML Sitemap</h3>
+                    <span class="badge badge-about">.XML</span>
+                  </div>
+                  <span class="text-subtle" style="font-size: 11px;">Search Engine Sitemap</span>
+                </div>
               </div>
-              <h3 class="export-card-title">XML Sitemap Generator</h3>
-              <p class="export-card-desc">Generates a standard, valid XML sitemap containing all successfully crawled 200 OK URLs ready for search engines.</p>
-              <button id="btnExportXml" class="btn btn-secondary export-btn">
-                Download sitemap.xml
-              </button>
+              <p class="export-card-desc">Generates a standard, valid XML sitemap containing all successfully crawled 200 OK URLs ready for search engines and webmaster tools.</p>
+              <div class="export-card-actions">
+                <button id="btnExportXml" class="btn btn-secondary export-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download sitemap.xml
+                </button>
+              </div>
             </div>
           </div>
         </div>

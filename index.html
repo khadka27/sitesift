@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Tags -->
+  <title>Site Data Crawler - Fast Web Crawler, SEO Auditor & Heading Extractor</title>
+  <meta name="description"
+    content="A powerful, privacy-first browser extension for deep recursive sitemap crawling, structured heading extraction, contact discovery, legal policy detection, and comprehensive SEO audits.">
+  <meta name="keywords"
+    content="web crawler, chrome extension, sitemap crawler, seo audit, heading extractor, email scraper, contact extractor, terms of service crawler, privacy policy extractor, website scraper">
+  <meta name="author" content="Site Data Crawler Team">
+
+  <!-- Open Graph / Social Tags -->
+  <meta property="og:title" content="Site Data Crawler - Next-Gen Web Crawler & SEO Extraction Extension">
+  <meta property="og:description"
+    content="Sift any website. Extract sitemaps, headings, legal policies, and contact details in seconds with zero server overhead.">
+  <meta property="og:image" content="icons/image.png">
+  <meta property="og:type" content="website">
+
+  <link rel="icon" type="image/png" href="icons/icon32.png">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+  <!-- Ambient Visual Glows -->
+  <div class="bg-ambient-grid"></div>
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+  <div class="glow-orb glow-orb-3"></div>
+
+  <!-- Header Navigation -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="#" class="brand-link">
+        <div class="brand-logo-wrap">
+          <img src="icons/icon48.png" alt="Site Data Crawler Spider Logo" class="brand-logo-img" width="28" height="28">
+        </div>
+        <div class="brand-text-wrap">
+          <span class="brand-name">Site Data Crawler</span>
+          <span class="brand-tag">v1.2</span>
+        </div>
+      </a>
+
+      <nav class="nav-menu">
+        <ul class="nav-links">
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#playground" class="nav-link">Live Simulator</a></li>
+          <li><a href="#exports" class="nav-link">Export Formats</a></li>
+          <li><a href="#comparison" class="nav-link">Comparison</a></li>
+          <li><a href="#install" class="nav-link">Install Guide</a></li>
+          <li><a href="#faq" class="nav-link">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="crawler.html" target="_blank" class="btn btn-secondary">
+          <span>Open Dashboard</span>
+        </a>
+        <a href="#install" class="btn btn-primary btn-glow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Get Extension</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-pill-badge">
+        <span class="pulse-dot"></span>
+        <span>Next-Gen Web Crawler & SEO Audit Engine for Chrome & Edge</span>
+      </div>
+
+      <h1 class="hero-title">
+        Sift Any Website. <br>
+        Extract <span class="gradient-text">Headings, Metadata, Legal Pages</span> & Contacts.
+      </h1>
+
+      <p class="hero-subtitle">
+        Deep recursive XML sitemap crawling, pure heading hierarchy extraction, automatic Terms & Privacy discovery,
+        email intelligence, and instant multi-format exports directly from your browser.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#playground" class="btn btn-primary btn-lg btn-glow">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Try Interactive Simulator</span>
+        </a>
+        <a href="crawler.html" target="_blank" class="btn btn-secondary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>Launch Web Dashboard</span>
+        </a>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="hero-stats-grid">
+        <div class="stat-box">
+          <div class="stat-value">10,000+</div>
+          <div class="stat-label">Pages / Min Crawl Speed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Client-Side & Private</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">6 Formats</div>
+          <div class="stat-label">CSV, MD, TXT, JSON, XML</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">0 Cloud Bills</div>
+          <div class="stat-label">Zero Server Dependency</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Crawl Simulator Section -->
+  <section id="playground" class="playground-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Interactive Playground</span>
+        <h2 class="section-title">Experience the Crawler in Real-Time</h2>
+        <p class="section-desc">Pick a website preset or enter any domain to simulate recursive URL resolution, page
+          classification, contact scraping, and SEO auditing.</p>
+      </div>
+
+      <!-- Simulator Window Mockup -->
+      <div class="crawler-mockup-window">
+        <div class="mockup-header-bar">
+          <div class="window-dots">
+            <span class="window-dot dot-red"></span>
+            <span class="window-dot dot-yellow"></span>
+            <span class="window-dot dot-green"></span>
+          </div>
+
+          <!-- Presets -->
+          <div class="mockup-presets-picker">
+            <span style="font-size: 12px; color: var(--text-dim); margin-right: 4px;">Preset Sites:</span>
+            <button class="preset-btn active" data-url="https://store.myshopify.com">E-Commerce Store</button>
+            <button class="preset-btn" data-url="https://docs.stripe.com">SaaS API Docs</button>
+            <button class="preset-btn" data-url="https://techcrunch.com">Tech News Blog</button>
+            <button class="preset-btn" data-url="https://acmecorp.com">Corporate Portal</button>
+          </div>
+        </div>
+
+        <!-- Controls Row -->
+        <div class="sim-controls-row">
+          <div class="sim-input-group">
+            <svg class="sim-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="simUrlInput" class="sim-url-input" value="https://store.myshopify.com"
+              spellcheck="false">
+          </div>
+
+          <button id="btnRunSim" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="simBtnText">Run Simulator</span>
+          </button>
+
+          <button id="btnLaunchLiveCrawl" class="btn btn-secondary" title="Open full crawler dashboard with this URL">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Launch Web Crawler</span>
+          </button>
+        </div>
+
+        <!-- Progress Strip -->
+        <div class="sim-progress-strip">
+          <div id="simProgressBar" class="sim-progress-fill"></div>
+        </div>
+
+        <!-- Metrics Strip -->
+        <div class="sim-metrics-bar">
+          <div class="sim-metric-cell">
+            <div id="simCountDiscovered" class="sim-metric-val">0</div>
+            <div class="sim-metric-lbl">Discovered URLs</div>
+          </div>
+          <div class="sim-metric-cell">
+            <div id="simCountCrawled" class="sim-metric-val text-primary">0</div>
+            <div class="sim-metric-lbl">Pages Crawled</div>
+          </div>
+          <div class="sim-metric-cell">
+            <div id="simCountLegal" class="sim-metric-val text-success">0</div>
+            <div class="sim-metric-lbl">Legal & Policy Pages</div>
+          </div>
+          <div class="sim-metric-cell">
+            <div id="simCountEmails" class="sim-metric-val text-cyan">0</div>
+            <div class="sim-metric-lbl">Extracted Emails</div>
+          </div>
+          <div class="sim-metric-cell">
+            <div id="simAvgLatency" class="sim-metric-val">0 ms</div>
+            <div class="sim-metric-lbl">Avg Response Time</div>
+          </div>
+        </div>
+
+        <!-- Simulator Table -->
+        <div class="sim-table-wrapper">
+          <table class="sim-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 140px;">Page Type</th>
+                <th>URL Path</th>
+                <th>Page Title</th>
+                <th style="width: 100px;">Word Count</th>
+                <th style="width: 90px;">Latency</th>
+              </tr>
+            </thead>
+            <tbody id="simTableBody">
+              <!-- Dynamically populated by JS simulation -->
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  Click "Start Simulated Crawl" above to watch real-time URL discovery and extraction.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Powerful Extraction Suite</span>
+        <h2 class="section-title">Built for SEO Experts, Developers & Data Miners</h2>
+        <p class="section-desc">Every tool you need to crawl, analyze, extract, and export structured website data with
+          zero complexity.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Recursive Sitemap Discovery</h3>
+          <p class="feature-desc">
+            Automatically locates and parses <code>/robots.txt</code>, standard sitemaps, and nested multi-tier
+            <code>sitemap_index.xml</code> trees with full XML namespace fallback.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-primary">Robots.txt Parser</span>
+            <span class="badge badge-primary">Nested Sitemaps</span>
+            <span class="badge badge-primary">Auto-Detection</span>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Scope & Legal Pages Rules</h3>
+          <p class="feature-desc">
+            Prioritizes discovery and extracts dedicated links for <strong>Terms & Conditions</strong>, <strong>Privacy
+              Policies</strong>, <strong>Cookie Policies</strong>, <strong>Disclaimers</strong>, and <strong>Copyright
+              Statements</strong>.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-terms">Terms of Service</span>
+            <span class="badge badge-privacy">Privacy Policy</span>
+            <span class="badge badge-primary">Cookie Notices</span>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Contact & Social Intelligence</h3>
+          <p class="feature-desc">
+            Extracts company emails (from mailto and text), phone numbers, inquiry contact forms, and social media
+            profiles across Twitter/X, LinkedIn, Facebook, Instagram, YouTube, and GitHub.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-contact">Email Scraper</span>
+            <span class="badge badge-contact">Phone Extractor</span>
+            <span class="badge badge-primary">Social Profiles</span>
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4 7 4 4 20 4 20 7"></polyline>
+              <line x1="9" y1="20" x2="15" y2="20"></line>
+              <line x1="12" y1="4" x2="12" y2="20"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Heading-Structured Text</h3>
+          <p class="feature-desc">
+            Extracts clean body text strictly structured by H1–H6 hierarchy. Eliminates nav bars, footer clutter, and
+            image tags—perfect for LLM feeding and NLP datasets.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-cyan">H1–H6 Hierarchy</span>
+            <span class="badge badge-cyan">LLM / AI Ready</span>
+            <span class="badge badge-cyan">No Boilerplate</span>
+          </div>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Real-Time SEO & Compliance Audit</h3>
+          <p class="feature-desc">
+            Instantly flags missing meta titles, descriptions, missing/multiple H1 tags, broken 404 links, thin content
+            (&lt;200 words), and grouped duplicate page titles.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-purple">Duplicate Detector</span>
+            <span class="badge badge-purple">Broken Link Audit</span>
+            <span class="badge badge-purple">Metadata Inspector</span>
+          </div>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Rendered Active Tab DOM Extractor</h3>
+          <p class="feature-desc">
+            Execute live DOM extractions on JavaScript-heavy Single Page Applications (React, Vue, Angular) directly
+            from your active browser tab with zero CORS blocks.
+          </p>
+          <div class="feature-tag-list">
+            <span class="badge badge-green">SPA Compatible</span>
+            <span class="badge badge-green">React / Vue</span>
+            <span class="badge badge-green">Zero CORS Blocks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-Format Export Showcase -->
+  <section id="exports" class="export-showcase-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Multi-Format Exporter</span>
+        <h2 class="section-title">Export Clean Data in 6 Formats</h2>
+        <p class="section-desc">Download tailored datasets for spreadsheets, developers, data pipelines, or search
+          engines in one click.</p>
+      </div>
+
+      <!-- Export Tabs -->
+      <div class="export-tabs-nav">
+        <button class="export-tab-btn active" data-target="export-csv">
+          <span>📊 Spreadsheet CSV</span>
+        </button>
+        <button class="export-tab-btn" data-target="export-md">
+          <span>📝 Headings Markdown (.md)</span>
+        </button>
+        <button class="export-tab-btn" data-target="export-txt">
+          <span>📄 Heading Text (.txt)</span>
+        </button>
+        <button class="export-tab-btn" data-target="export-json">
+          <span>⚙️ Structured JSON</span>
+        </button>
+        <button class="export-tab-btn" data-target="export-xml">
+          <span>🗺️ XML Sitemap</span>
+        </button>
+      </div>
+
+      <!-- Export Code Card -->
+      <div class="export-code-card">
+        <div class="export-code-header">
+          <span id="exportFileName" class="export-file-name">myshopify_pages.csv</span>
+          <button id="btnCopyExportSample" class="btn-copy-code">Copy Sample</button>
+        </div>
+        <pre
+          class="export-code-pre"><code id="exportCodeBlock">"URL","HTTP Status","Status Label","Page Type","Title","Meta Description","Contact Emails","Contact Phones","Social Media Profiles","Terms URL","Privacy Policy URL","Copyright Statement","Word Count","H1 Count","H1 Text"
+"https://store.myshopify.com/","200","success","Standard Page","Modern Apparel Store","Discover our curated collection of premium streetwear and minimalist essentials.","support@store.com","+1 (800) 555-0199","Twitter: https://x.com/modernapparel; Instagram: https://instagram.com/modernapparel","https://store.myshopify.com/policies/terms-of-service","https://store.myshopify.com/policies/privacy-policy","© 2026 Modern Apparel Co.","1420","1","Elevate Your Everyday Style"
+"https://store.myshopify.com/policies/terms-of-service","200","success","Terms & Conditions","Terms of Service - Modern Apparel","Read our terms and conditions governing use of this website and services.","legal@store.com","","","https://store.myshopify.com/policies/terms-of-service","https://store.myshopify.com/policies/privacy-policy","© 2026 Modern Apparel Co.","2850","1","Terms and Conditions of Service"
+"https://store.myshopify.com/pages/contact-us","200","success","Contact Us","Contact Us - Customer Support","Get in touch with our support team for orders, inquiries, or wholesale questions.","help@store.com","+1 (800) 555-0199","","","","","450","1","How Can We Help You?"</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Matrix Section -->
+  <section id="comparison" class="comparison-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Side-by-Side Comparison</span>
+        <h2 class="section-title">Why Site Data Crawler Wins</h2>
+        <p class="section-desc">Compare against traditional desktop crawlers and costly cloud scraping APIs.</p>
+      </div>
+
+      <div class="comparison-table-wrapper">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight-col">Site Data Crawler</th>
+              <th>Screaming Frog</th>
+              <th>Cloud Web Scrapers</th>
+              <th>Generic Extensions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Price & License</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> 100% Free & Open Source</td>
+              <td>$259 / year per license</td>
+              <td>$49 - $299 / month</td>
+              <td>Freemium / Restricted</td>
+            </tr>
+            <tr>
+              <td><strong>Installation</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> Instant Browser Extension</td>
+              <td>Heavy Desktop Software</td>
+              <td>Complex API Integration</td>
+              <td>Browser Extension</td>
+            </tr>
+            <tr>
+              <td><strong>Scope & Legal Extraction</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> Terms, Privacy & Policies</td>
+              <td><span class="cross-icon">✗</span> Manual Regex / Xpath</td>
+              <td><span class="cross-icon">✗</span> Custom Code required</td>
+              <td><span class="cross-icon">✗</span> Not Supported</td>
+            </tr>
+            <tr>
+              <td><strong>Contact Intelligence</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> Emails, Phones & Socials</td>
+              <td><span class="cross-icon">✗</span> Custom Extraction only</td>
+              <td>Extra Add-on Fees</td>
+              <td><span class="cross-icon">✗</span> Not Supported</td>
+            </tr>
+            <tr>
+              <td><strong>Heading-Structured Text</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> Native H1–H6 Markdown/TXT</td>
+              <td><span class="cross-icon">✗</span> Fragmented table rows</td>
+              <td><span class="cross-icon">✗</span> Raw HTML dumps</td>
+              <td><span class="cross-icon">✗</span> Not Supported</td>
+            </tr>
+            <tr>
+              <td><strong>Privacy & Data Security</strong></td>
+              <td class="highlight-col"><span class="check-icon">✓</span> 100% Local (0 data leaves machine)</td>
+              <td>Local desktop</td>
+              <td><span class="cross-icon">✗</span> Processed on 3rd-party servers</td>
+              <td>Varies / Often Tracked</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 30-Second Installation Guide -->
+  <section id="install" class="install-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Zero Hassle Setup</span>
+        <h2 class="section-title">Install in 30 Seconds</h2>
+        <p class="section-desc">Works seamlessly on Google Chrome, Microsoft Edge, Brave, and any Chromium browser.</p>
+      </div>
+
+      <div class="install-steps-grid">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-number-badge">1</div>
+          <h3 class="step-title">Open Extension Manager</h3>
+          <p class="step-desc">
+            Open Chrome and navigate to the extension management dashboard:
+          </p>
+          <div class="code-snippet-box">
+            <span>chrome://extensions</span>
+            <button class="btn-copy-code" data-copy="chrome://extensions">Copy</button>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-number-badge">2</div>
+          <h3 class="step-title">Enable Developer Mode</h3>
+          <p class="step-desc">
+            Toggle the <strong>Developer mode</strong> switch in the top right corner of the extension dashboard.
+          </p>
+          <div class="code-snippet-box" style="color: var(--primary-light);">
+            <span>Top-Right Corner Toggle [ON]</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-number-badge">3</div>
+          <h3 class="step-title">Load Unpacked Folder</h3>
+          <p class="step-desc">
+            Click <strong>Load unpacked</strong> in the top left and select this project folder:
+          </p>
+          <div class="code-snippet-box">
+            <span>/sitesift (Repository Folder)</span>
+            <button class="btn-copy-code" data-copy="/home/khadka27/Desktop/sitesift">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Got Questions?</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-desc">Everything you need to know about Site Data Crawler's architecture and capabilities.</p>
+      </div>
+
+      <div class="faq-container">
+        <div class="faq-item open">
+          <div class="faq-question">
+            <span>Does Site Data Crawler send any crawled data to external servers?</span>
+            <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            No. Site Data Crawler is 100% client-side. All HTTP requests, sitemap parsing, and HTML text extractions
+            happen strictly inside your browser environment. No tracking, no external API relays, and zero telemetry.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How does the crawler respect robots.txt and rate limits?</span>
+            <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            When starting a crawl, the engine fetches and parses <code>/robots.txt</code>. It respects Disallow
+            directives, extracts Sitemap paths, and adheres to configurable polite delays (default 500ms between
+            requests) with controlled worker concurrency (default 3 simultaneous workers).
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What are Scope & Extra Pages rules?</span>
+            <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            Scope & Extra Pages rules automatically detect and prioritize critical compliance and utility pages (Terms
+            of Service, Privacy Policies, Cookie Notices, Disclaimers, Imprint, and Contact Us) at the front of the
+            crawl queue, ensuring they are cataloged even if maximum crawl limits are hit.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Can I crawl Single Page Applications (SPAs) and dynamic websites?</span>
+            <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            Yes! In addition to multi-page background crawling, the extension provides an "Active Tab Rendered DOM
+            Extractor" tool that inspects the live rendered JavaScript DOM of any currently open tab.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What export formats are supported?</span>
+            <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            You can export in 6 different formats: Heading-Structured Markdown (.md), Heading-Structured Text (.txt),
+            Standard Spreadsheet CSV (.csv), Structured JSON (.json), XML Sitemap (.xml), and Complete ASCII SEO Audit
+            Report (.txt).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner Section -->
+  <section class="cta-banner-section">
+    <div class="container">
+      <div class="cta-banner-card">
+        <h2 class="cta-title">Start Sifting Website Data in Seconds</h2>
+        <p class="cta-desc">
+          Load the unpacked extension into Chrome or Edge, launch the interactive dashboard, and extract structured data
+          instantly.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <a href="crawler.html" target="_blank" class="btn btn-primary btn-lg btn-glow">
+            <span>Launch Crawler Dashboard</span>
+          </a>
+          <a href="#playground" class="btn btn-secondary btn-lg">
+            <span>Try Live Simulator</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="icons/icon32.png" alt="Spider Logo" width="24" height="24">
+          <span style="font-weight: 700; color: var(--text-main);">Site Data Crawler</span>
+          <span style="color: var(--text-dim);">— Open Source Web Crawling & SEO Engine</span>
+        </div>
+
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#playground">Simulator</a></li>
+          <li><a href="#exports">Exports</a></li>
+          <li><a href="crawler.html" target="_blank">Dashboard</a></li>
+          <li><a href="options.html" target="_blank">Settings</a></li>
+        </ul>
+      </div>
+
+      <div
+        style="text-align: center; color: var(--text-dim); padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.04);">
+        © 2026 Site Data Crawler. Released under the MIT License. 100% Client-Side Privacy Guaranteed.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notice Element -->
+  <div id="toastNotice" class="toast-notice">Copied to clipboard!</div>
+
+  <!-- Scripts -->
+  <script src="index.js"></script>
+</body>
+
+</html>

@@ -4,6 +4,7 @@
  */
 
 import { normalizeUrl, resolveUrl, parseRobotsTxt, getOrigin } from './url-utils.js';
+import { smartFetch } from './fetcher.js';
 
 export class SitemapParser {
   constructor(options = {}) {
@@ -18,17 +19,17 @@ export class SitemapParser {
   /**
    * Discovers sitemaps for a website by checking robots.txt and standard locations.
    * 
-   * @param {string} targetUrl 
-   * @returns {Promise<{ sitemaps: Array<string>, robotsTxt: Object, allUrls: Array<Object> }>}
+   * @param {string} seedUrl 
+   * @returns {Promise<{ sitemaps: Array, robotsTxt: Object, allUrls: Array, totalUrlsCount: number }>}
    */
-  async discoverAndParse(targetUrl) {
-    const origin = getOrigin(targetUrl);
+  async discoverAndParse(seedUrl) {
+    const origin = getOrigin(seedUrl);
     if (!origin) {
-      throw new Error(`Invalid target URL: ${targetUrl}`);
+      throw new Error(`Invalid target URL: ${seedUrl}`);
     }
 
     const candidateSitemaps = new Set();
-    let robotsInfo = { sitemaps: [], disallows: [], allows: [], crawlDelay: null };
+    let robotsInfo = { disallow: [], sitemaps: [], crawlDelay: 0 };
 
     this.onProgress({
       phase: 'discovery',
@@ -40,10 +41,9 @@ export class SitemapParser {
     // 1. Check robots.txt
     try {
       const robotsUrl = `${origin}/robots.txt`;
-      const robotsResponse = await this._fetchWithTimeout(robotsUrl);
-      if (robotsResponse.ok) {
-        const robotsText = await robotsResponse.text();
-        robotsInfo = parseRobotsTxt(robotsText, origin);
+      const robotsResponse = await smartFetch(robotsUrl, { timeoutMs: 3500, accept: 'text/plain,text/html,*/*' });
+      if (robotsResponse.ok && robotsResponse.text) {
+        robotsInfo = parseRobotsTxt(robotsResponse.text, origin);
         for (const sm of robotsInfo.sitemaps) {
           candidateSitemaps.add(sm);
         }
@@ -65,17 +65,16 @@ export class SitemapParser {
 
     this.onProgress({
       phase: 'discovery',
-      message: `Found ${candidateSitemaps.size} sitemap candidates. Beginning verification...`,
+      message: `Checking sitemaps for ${origin}...`,
       sitemapsCount: candidateSitemaps.size,
       urlsCount: 0
     });
 
-    // 3. Process candidate sitemaps recursively
-    for (const sitemapUrl of candidateSitemaps) {
-      if (!this.visitedSitemaps.has(sitemapUrl)) {
-        await this._processSitemap(sitemapUrl, 0);
-      }
-    }
+    // 3. Process candidate sitemaps in parallel with quick timeout
+    const candidateArray = Array.from(candidateSitemaps);
+    await Promise.allSettled(
+      candidateArray.map(url => this._processSitemap(url, 0))
+    );
 
     const urlsArray = Array.from(this.discoveredUrls.values());
 
@@ -107,13 +106,15 @@ export class SitemapParser {
     });
 
     try {
-      const response = await this._fetchWithTimeout(sitemapUrl);
-      if (!response.ok) {
+      const response = await smartFetch(sitemapUrl, {
+        timeoutMs: this.timeoutMs,
+        accept: 'application/xml,text/xml,text/plain,*/*'
+      });
+      if (!response.ok || !response.text) {
         return;
       }
 
-      const contentType = response.headers.get('content-type') || '';
-      const text = await response.text();
+      const text = response.text;
 
       // Check if this is valid XML or plain text
       const parsed = this._parseXmlOrText(text, sitemapUrl);
