@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const activeTabLabel = document.getElementById('activeTabLabel');
 
   const extractLoadingState = document.getElementById('extractLoadingState');
+  const btnCancelCrawl = document.getElementById('btnCancelCrawl');
   const singlePageResultPanel = document.getElementById('singlePageResultPanel');
   const btnCloseResult = document.getElementById('btnCloseResult');
 
