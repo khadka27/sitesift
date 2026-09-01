@@ -519,8 +519,20 @@ ${sectionsHtml}
    * @param {boolean} saveAs 
    */
   static download(filename, content, mimeType = 'text/plain', saveAs = false) {
-    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-    const url = URL.createObjectURL(blob);
+    let url = '';
+    let isBlobUrl = false;
+
+    try {
+      if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+        const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+        url = URL.createObjectURL(blob);
+        isBlobUrl = true;
+      }
+    } catch {}
+
+    if (!url) {
+      url = `data:${mimeType};charset=utf-8,${encodeURIComponent(content)}`;
+    }
 
     if (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.download) {
       chrome.downloads.download({
@@ -528,9 +540,11 @@ ${sectionsHtml}
         filename: filename,
         saveAs: saveAs
       }, () => {
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        if (isBlobUrl) {
+          setTimeout(() => URL.revokeObjectURL(url), 15000);
+        }
       });
-    } else {
+    } else if (typeof document !== 'undefined') {
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
@@ -539,7 +553,7 @@ ${sectionsHtml}
       a.click();
       setTimeout(() => {
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (isBlobUrl) URL.revokeObjectURL(url);
       }, 5000);
     }
   }

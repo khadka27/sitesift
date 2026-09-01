@@ -8,10 +8,10 @@
  */
 export function isExtensionContext() {
   try {
-    return typeof chrome !== 'undefined' && 
-           Boolean(chrome.runtime && chrome.runtime.id) && 
-           typeof location !== 'undefined' && 
-           location.protocol === 'chrome-extension:';
+    const hasChromeRuntime = typeof chrome !== 'undefined' && Boolean(chrome.runtime && chrome.runtime.id);
+    if (!hasChromeRuntime) return false;
+    const proto = typeof location !== 'undefined' ? location.protocol : (typeof self !== 'undefined' && self.location ? self.location.protocol : '');
+    return proto === 'chrome-extension:' || proto === 'moz-extension:' || Boolean(chrome.runtime.getURL);
   } catch {
     return false;
   }
