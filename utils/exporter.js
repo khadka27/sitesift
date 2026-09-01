@@ -516,8 +516,9 @@ ${sectionsHtml}
    * @param {string} filename 
    * @param {string} content 
    * @param {string} mimeType 
+   * @param {boolean} saveAs 
    */
-  static download(filename, content, mimeType = 'text/plain') {
+  static download(filename, content, mimeType = 'text/plain', saveAs = false) {
     const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
     const url = URL.createObjectURL(blob);
 
@@ -525,7 +526,7 @@ ${sectionsHtml}
       chrome.downloads.download({
         url: url,
         filename: filename,
-        saveAs: true
+        saveAs: saveAs
       }, () => {
         setTimeout(() => URL.revokeObjectURL(url), 10000);
       });

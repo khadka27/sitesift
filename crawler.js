@@ -496,7 +496,7 @@ class CrawlerDashboard {
 
     try {
       // 1. Discovery Phase (Sitemap & Robots.txt)
-      if (this.settings.crawlMode !== 'links_only') {
+      if (this.settings.crawlMode !== 'links_only' && this.settings.crawlMode !== 'page_links') {
         this.dom.liveStatusText.textContent = 'Discovering sitemaps & robots.txt...';
         this.dom.sitemapStatusBadge.className = 'badge badge-warning';
         this.dom.sitemapStatusBadge.textContent = 'Checking...';
@@ -546,7 +546,30 @@ class CrawlerDashboard {
       // 3. Completed Phase
       if (this.state !== 'STOPPED') {
         this.state = 'COMPLETED';
-        this.dom.liveStatusText.textContent = 'Crawl completed successfully.';
+        this.dom.liveStatusText.textContent = 'Crawl completed. Generating .TXT report...';
+
+        // Auto-generate & download TXT report for all crawled pages
+        try {
+          if (this.crawledPages.length > 0) {
+            const crawlExportData = {
+              siteUrl: this.targetUrl,
+              timestamp: new Date().toISOString(),
+              duration: this.dom.statElapsed.textContent,
+              stats: this.auditSummary,
+              pages: this.crawledPages
+            };
+            const content = Exporter.generateHeadingContentTxtReport(crawlExportData);
+            const host = getHostname(this.targetUrl).replace(/[^a-zA-Z0-9.-]/g, '_') || 'site_data';
+            const filename = `${host}_all_${this.crawledPages.length}_pages_headings.txt`;
+            Exporter.download(filename, content, 'text/plain', false);
+            this.dom.liveStatusText.textContent = `Crawl completed! Auto-downloaded ${filename}`;
+          } else {
+            this.dom.liveStatusText.textContent = 'Crawl completed successfully.';
+          }
+        } catch (exportErr) {
+          console.warn('[Site Data Crawler] Auto-export error:', exportErr);
+          this.dom.liveStatusText.textContent = 'Crawl completed successfully.';
+        }
       }
     } catch (err) {
       this.state = 'ERROR';
@@ -703,12 +726,14 @@ class CrawlerDashboard {
 
       // Follow discovered internal links if enabled
       if (this.settings.followDiscoveredLinks && this.settings.crawlMode !== 'sitemap') {
-        const internalLinks = parsedData.links?.internal || [];
-        const effectiveMax = this.settings.maxPages || 100;
+        if (this.settings.crawlMode !== 'page_links' || depth === 0) {
+          const internalLinks = parsedData.links?.internal || [];
+          const effectiveMax = this.settings.maxPages || 100;
 
-        for (const link of internalLinks) {
-          if (this.queuedUrlsSet.size >= effectiveMax * 3) break;
-          this._enqueueUrl(link.url, depth + 1, url);
+          for (const link of internalLinks) {
+            if (this.queuedUrlsSet.size >= effectiveMax * 3) break;
+            this._enqueueUrl(link.url, depth + 1, url);
+          }
         }
       }
     } catch (err) {
@@ -907,6 +932,7 @@ class CrawlerDashboard {
 
   _formatCrawlMode(mode) {
     if (mode === 'single_page') return 'Single Page Only';
+    if (mode === 'page_links') return 'Page + Discovered Links';
     if (mode === 'sitemap') return 'Sitemap Only';
     if (mode === 'links_only') return 'Links Only';
     return 'Sitemap + Links';

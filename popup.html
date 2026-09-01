@@ -35,25 +35,29 @@
     <!-- Segmented Mode Switcher -->
     <div class="segmented-control-wrapper">
       <div class="segmented-control" role="tablist">
-        <button id="tabSinglePage" class="segment-btn active" type="button" role="tab" aria-selected="true">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="tabSinglePage" class="segment-btn active" type="button" role="tab" aria-selected="true" title="Extract 1 page and auto-download TXT">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
           <span>Single Page</span>
-          <span class="pill-badge">Direct Download</span>
+          <span class="pill-badge">.TXT</span>
         </button>
-        <button id="tabMultiPage" class="segment-btn" type="button" role="tab" aria-selected="false">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="tabPageLinks" class="segment-btn" type="button" role="tab" aria-selected="false" title="Crawl this page & all discovered links from it, auto-downloading TXT">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Page + Links</span>
+          <span class="pill-badge">.TXT</span>
+        </button>
+        <button id="tabMultiPage" class="segment-btn" type="button" role="tab" aria-selected="false" title="Open full crawler dashboard for deep recursive crawl">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
             <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-            <line x1="6" y1="6" x2="6.01" y2="6"></line>
-            <line x1="6" y1="18" x2="6.01" y2="18"></line>
           </svg>
           <span>Site Crawl</span>
-          <span class="pill-badge">Dashboard</span>
+          <span class="pill-badge">Full</span>
         </button>
       </div>
     </div>
@@ -101,7 +105,7 @@
           <svg id="mainActionIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon>
           </svg>
-          <span id="mainActionLabel">Extract Single Page</span>
+          <span id="mainActionLabel">Extract & Auto-Download (.TXT)</span>
         </button>
         <button id="btnOpenDashboard" class="btn btn-secondary" type="button" title="Open multi-page crawler dashboard">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -283,7 +287,8 @@
           <div class="control-row">
             <label for="selectCrawlMode" class="sub-label">Mode</label>
             <select id="selectCrawlMode" class="form-select">
-              <option value="single_page" selected>Single Page (In-Popup Download)</option>
+              <option value="single_page" selected>Single Page (In-Popup .TXT)</option>
+              <option value="page_links">Page + All Discovered Links (In-Popup .TXT)</option>
               <option value="sitemap_and_links">Sitemap + Links (Full Dashboard)</option>
               <option value="sitemap">Sitemap Only (Full Dashboard)</option>
               <option value="links_only">Links Only (Full Dashboard)</option>

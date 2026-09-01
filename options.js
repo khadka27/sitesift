@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function populateForm(s) {
     optCrawlMode.value = s.crawlMode || 'single_page';
     if (optDefaultExportFormat) {
-      optDefaultExportFormat.value = s.defaultExportFormat || 'markdown';
+      optDefaultExportFormat.value = s.defaultExportFormat || 'txt';
     }
     optMaxPages.value = s.maxPages || 100;
     optCrawlDelay.value = s.crawlDelay ?? 500;
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const updated = {
       crawlMode: optCrawlMode.value,
-      defaultExportFormat: optDefaultExportFormat ? optDefaultExportFormat.value : 'markdown',
+      defaultExportFormat: optDefaultExportFormat ? optDefaultExportFormat.value : 'txt',
       maxPages: parseInt(optMaxPages.value, 10) || 100,
       crawlDelay: parseInt(optCrawlDelay.value, 10) || 0,
       concurrency: parseInt(optConcurrency.value, 10) || 3,

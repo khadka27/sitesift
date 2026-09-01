@@ -4,7 +4,7 @@
  */
 
 import { getSettings, saveSettings, getLastUrl, saveLastUrl, clearCrawlData, saveRecentSession } from './utils/storage.js';
-import { normalizeUrl, getHostname } from './utils/url-utils.js';
+import { normalizeUrl, getHostname, isAllowedDomain, isNonHtmlResource, matchesExcludePattern } from './utils/url-utils.js';
 import { smartFetch } from './utils/fetcher.js';
 import { HtmlParser } from './utils/html-parser.js';
 import { Exporter } from './utils/exporter.js';
@@ -12,6 +12,7 @@ import { Exporter } from './utils/exporter.js';
 document.addEventListener('DOMContentLoaded', async () => {
   // DOM Elements
   const tabSinglePage = document.getElementById('tabSinglePage');
+  const tabPageLinks = document.getElementById('tabPageLinks');
   const tabMultiPage = document.getElementById('tabMultiPage');
 
   const inputUrl = document.getElementById('inputUrl');
@@ -76,7 +77,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // State
   let currentActiveTab = null;
   let extractedSinglePage = null;
-  let currentMode = 'single_page'; // 'single_page' | 'multi_page'
+  let currentExtractedPages = [];
+  let currentMode = 'single_page'; // 'single_page' | 'page_links' | 'multi_page'
 
   // Load Settings & Last URL
   const settings = await getSettings();
@@ -90,36 +92,59 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Mode Selection Tabs
   tabSinglePage.addEventListener('click', () => setMode('single_page'));
+  if (tabPageLinks) {
+    tabPageLinks.addEventListener('click', () => setMode('page_links'));
+  }
   tabMultiPage.addEventListener('click', () => setMode('multi_page'));
 
   function setMode(mode) {
     currentMode = mode;
+    tabSinglePage.classList.toggle('active', mode === 'single_page');
+    tabSinglePage.setAttribute('aria-selected', String(mode === 'single_page'));
+    if (tabPageLinks) {
+      tabPageLinks.classList.toggle('active', mode === 'page_links');
+      tabPageLinks.setAttribute('aria-selected', String(mode === 'page_links'));
+    }
+    tabMultiPage.classList.toggle('active', mode === 'multi_page');
+    tabMultiPage.setAttribute('aria-selected', String(mode === 'multi_page'));
+
     if (mode === 'single_page') {
-      tabSinglePage.classList.add('active');
-      tabSinglePage.setAttribute('aria-selected', 'true');
-      tabMultiPage.classList.remove('active');
-      tabMultiPage.setAttribute('aria-selected', 'false');
       selectCrawlMode.value = 'single_page';
       multiPageControlsContainer.classList.add('hidden');
 
-      mainActionLabel.textContent = 'Extract Single Page';
+      mainActionLabel.textContent = 'Extract & Auto-Download (.TXT)';
       while (mainActionIcon.firstChild) mainActionIcon.removeChild(mainActionIcon.firstChild);
       const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
       polygon.setAttribute('points', '13 2 3 14 12 14 11 22 21 10 12 10 13 2');
       polygon.setAttribute('fill', 'currentColor');
       mainActionIcon.appendChild(polygon);
       settingsSummaryBadge.textContent = 'Single Page';
+    } else if (mode === 'page_links') {
+      selectCrawlMode.value = 'page_links';
+      multiPageControlsContainer.classList.remove('hidden');
+
+      mainActionLabel.textContent = 'Crawl Page Links & Auto-Download (.TXT)';
+      while (mainActionIcon.firstChild) mainActionIcon.removeChild(mainActionIcon.firstChild);
+      const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path1.setAttribute('d', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71');
+      path1.setAttribute('stroke', 'currentColor');
+      path1.setAttribute('stroke-width', '2');
+      path1.setAttribute('fill', 'none');
+      const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path2.setAttribute('d', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71');
+      path2.setAttribute('stroke', 'currentColor');
+      path2.setAttribute('stroke-width', '2');
+      path2.setAttribute('fill', 'none');
+      mainActionIcon.appendChild(path1);
+      mainActionIcon.appendChild(path2);
+      updateMultiPageSummaryBadge();
     } else {
-      tabMultiPage.classList.add('active');
-      tabMultiPage.setAttribute('aria-selected', 'true');
-      tabSinglePage.classList.remove('active');
-      tabSinglePage.setAttribute('aria-selected', 'false');
-      if (selectCrawlMode.value === 'single_page') {
+      if (selectCrawlMode.value === 'single_page' || selectCrawlMode.value === 'page_links') {
         selectCrawlMode.value = 'sitemap_and_links';
       }
       multiPageControlsContainer.classList.remove('hidden');
 
-      mainActionLabel.textContent = 'Start Deep Crawl';
+      mainActionLabel.textContent = 'Start Deep Site Crawl';
       while (mainActionIcon.firstChild) mainActionIcon.removeChild(mainActionIcon.firstChild);
       const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
       polygon.setAttribute('points', '5 3 19 12 5 21 5 3');
@@ -174,6 +199,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   selectCrawlMode.addEventListener('change', () => {
     if (selectCrawlMode.value === 'single_page') {
       setMode('single_page');
+    } else if (selectCrawlMode.value === 'page_links') {
+      setMode('page_links');
     } else {
       setMode('multi_page');
     }
@@ -220,7 +247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     input.addEventListener('change', () => persistCurrentSettings());
   });
 
-  // Primary Action Button (Extract Single Page OR Start Deep Crawl)
+  // Primary Action Button (Single Page Extract OR Page Links Crawl OR Launch Dashboard)
   btnMainAction.addEventListener('click', async () => {
     const rawUrl = inputUrl.value.trim();
     if (!rawUrl) {
@@ -240,8 +267,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await persistCurrentSettings();
 
     if (currentMode === 'single_page' || selectCrawlMode.value === 'single_page') {
-      // Execute Single Page Extraction inside extension popup!
+      // Execute Single Page Extraction inside extension popup
       await executeSinglePageExtraction(normalized);
+    } else if (currentMode === 'page_links' || selectCrawlMode.value === 'page_links') {
+      // Execute Page & All Links Crawl inside extension popup
+      await executePageAndLinksCrawl(normalized);
     } else {
       // Launch full crawler dashboard
       chrome.runtime.sendMessage({
@@ -381,8 +411,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       // Display in popup
+      currentExtractedPages = [extractedSinglePage];
       renderSinglePageResult(extractedSinglePage);
-      showStatus(`Extracted single page in ${latencyMs}ms!`, 'success');
+
+      // Auto-download clean text (.txt) without needing manual button click or prompt
+      const txt = Exporter.generateHeadingContentTxtReport({
+        siteUrl: extractedSinglePage.url,
+        pages: [extractedSinglePage]
+      });
+      const filename = `${getFileSlug(extractedSinglePage)}.txt`;
+      Exporter.download(filename, txt, 'text/plain', false);
+
+      showStatus(`Extracted & Auto-Downloaded ${filename} (${latencyMs}ms)!`, 'success');
     } catch (err) {
       console.error('[Site Data Crawler] Extraction Error:', err);
       showStatus(`Extraction failed: ${err.message}`, 'error');
@@ -390,6 +430,290 @@ document.addEventListener('DOMContentLoaded', async () => {
       extractLoadingState.classList.add('hidden');
       btnMainAction.disabled = false;
     }
+  }
+
+  // ==========================================
+  // PAGE & DISCOVERED LINKS CRAWLER (In-Extension)
+  // ==========================================
+
+  async function executePageAndLinksCrawl(targetUrl) {
+    extractLoadingState.classList.remove('hidden');
+    singlePageResultPanel.classList.add('hidden');
+    btnMainAction.disabled = true;
+
+    const loadingTitle = extractLoadingState.querySelector('.loading-title');
+    const loadingSubtitle = extractLoadingState.querySelector('.loading-subtitle');
+    if (loadingTitle) loadingTitle.textContent = 'Crawling Page & Discovered Links...';
+    if (loadingSubtitle) loadingSubtitle.textContent = 'Step 1/2: Extracting seed page & discovering internal links...';
+
+    const startTime = performance.now();
+
+    try {
+      let seedHtml = '';
+      let isRenderedDom = false;
+
+      // 1. If target matches active tab, try to extract live rendered DOM for SPA compatibility
+      if (currentActiveTab && currentActiveTab.url && currentActiveTab.id) {
+        const activeNormalized = normalizeUrl(currentActiveTab.url);
+        if (activeNormalized === targetUrl) {
+          try {
+            const resp = await new Promise((resolve) => {
+              chrome.runtime.sendMessage({
+                action: 'FETCH_RENDERED_DOM',
+                tabId: currentActiveTab.id
+              }, resolve);
+            });
+            if (resp && resp.success && resp.html) {
+              seedHtml = resp.html;
+              isRenderedDom = true;
+            }
+          } catch (err) {
+            console.warn('[Site Data Crawler] Rendered extraction fallback:', err);
+          }
+        }
+      }
+
+      // 2. Direct fetch if rendered DOM wasn't obtained
+      if (!seedHtml) {
+        const fetchRes = await smartFetch(targetUrl, { timeoutMs: 15000 });
+        if (!fetchRes.ok && !fetchRes.text) {
+          throw new Error(fetchRes.error || `HTTP ${fetchRes.status} ${fetchRes.statusText || 'Failed to fetch seed page'}`);
+        }
+        seedHtml = fetchRes.text;
+      }
+
+      if (!seedHtml) {
+        throw new Error('Empty response received from target URL.');
+      }
+
+      // 3. Parse seed HTML
+      const parseOptions = {
+        extractHeadings: chkExtractHeadings.checked,
+        extractContactInfo: chkExtractContact.checked,
+        extractLegalInfo: chkExtractLegal.checked,
+        classifyPageTypes: chkClassifyPageTypes.checked,
+        extractMetadata: chkExtractMetadata.checked,
+        extractLinks: true, // Required to discover links on page
+        extractImages: chkExtractImages.checked,
+        extractStructuredData: chkExtractStructuredData.checked
+      };
+
+      const parsedSeed = HtmlParser.parse(seedHtml, targetUrl, parseOptions);
+      const seedLatency = Math.round(performance.now() - startTime);
+
+      const seedPageRecord = {
+        ...parsedSeed,
+        httpStatus: 200,
+        httpStatusText: 'OK',
+        status: 'success',
+        responseTimeMs: seedLatency,
+        isRenderedDom,
+        timestamp: new Date().toISOString()
+      };
+
+      // 4. Discover and filter all internal links from the seed page
+      const internalLinks = parsedSeed.links?.internal || [];
+      const currentSettings = await getSettings();
+      const excludePatterns = currentSettings.excludePatterns || [];
+      const maxPages = getEffectiveMaxPages() || 50;
+      const crawlDelay = getEffectiveCrawlDelay() || 100;
+
+      const linkQueue = [];
+      const visited = new Set([targetUrl]);
+
+      for (const item of internalLinks) {
+        const linkUrl = normalizeUrl(item.url, { removeQueryParams: currentSettings.ignoreQueryParams !== false });
+        if (
+          linkUrl &&
+          !visited.has(linkUrl) &&
+          !isNonHtmlResource(linkUrl) &&
+          isAllowedDomain(linkUrl, targetUrl, { sameDomainOnly: currentSettings.sameDomainOnly !== false }) &&
+          !matchesExcludePattern(linkUrl, excludePatterns)
+        ) {
+          visited.add(linkUrl);
+          linkQueue.push(linkUrl);
+          if (linkQueue.length >= maxPages) break;
+        }
+      }
+
+      const allCrawledPages = [seedPageRecord];
+      const totalToCrawl = linkQueue.length;
+
+      // 5. Crawl discovered links from the seed page
+      if (totalToCrawl > 0) {
+        for (let i = 0; i < linkQueue.length; i++) {
+          const nextUrl = linkQueue[i];
+          const displayUrl = nextUrl.replace(/^https?:\/\//i, '').slice(0, 30);
+          if (loadingSubtitle) {
+            loadingSubtitle.textContent = `[${i + 1}/${totalToCrawl}] Crawling: ${displayUrl}...`;
+          }
+
+          if (crawlDelay > 0 && i > 0) {
+            await new Promise(r => setTimeout(r, crawlDelay));
+          }
+
+          try {
+            const pageStart = performance.now();
+            const res = await smartFetch(nextUrl, { timeoutMs: 12000 });
+            const pageLatency = Math.round(performance.now() - pageStart);
+
+            if (res.ok && res.text) {
+              const parsedPage = HtmlParser.parse(res.text, nextUrl, parseOptions);
+              allCrawledPages.push({
+                ...parsedPage,
+                httpStatus: res.status || 200,
+                httpStatusText: res.statusText || 'OK',
+                status: 'success',
+                responseTimeMs: pageLatency,
+                timestamp: new Date().toISOString()
+              });
+            }
+          } catch (fetchErr) {
+            console.warn(`[Site Data Crawler] Skipped link ${nextUrl}:`, fetchErr);
+          }
+        }
+      }
+
+      const totalDurationMs = Math.round(performance.now() - startTime);
+
+      // 6. Save Session
+      await saveRecentSession({
+        siteUrl: targetUrl,
+        pages: allCrawledPages,
+        timestamp: new Date().toISOString(),
+        stats: { totalDiscovered: allCrawledPages.length, successful: allCrawledPages.length, failed: 0 }
+      });
+
+      // 7. Render combined results in Popup
+      extractedSinglePage = seedPageRecord;
+      currentExtractedPages = allCrawledPages;
+      renderCrawledPagesResult(seedPageRecord, allCrawledPages, totalDurationMs);
+
+      // 8. Auto-Download Combined Headings TXT Report for all crawled pages
+      const txt = Exporter.generateHeadingContentTxtReport({
+        siteUrl: targetUrl,
+        pages: allCrawledPages
+      });
+      const filename = `${getFileSlug(seedPageRecord, true)}.txt`;
+      Exporter.download(filename, txt, 'text/plain', false);
+
+      showStatus(`Crawled ${allCrawledPages.length} pages & Auto-Downloaded ${filename} in ${(totalDurationMs / 1000).toFixed(1)}s!`, 'success');
+    } catch (err) {
+      console.error('[Site Data Crawler] Link Crawl Error:', err);
+      showStatus(`Crawl failed: ${err.message}`, 'error');
+    } finally {
+      extractLoadingState.classList.add('hidden');
+      if (loadingTitle) loadingTitle.textContent = 'Extracting Page Content...';
+      if (loadingSubtitle) loadingSubtitle.textContent = 'Parsing DOM hierarchy, text & pricing';
+      btnMainAction.disabled = false;
+    }
+  }
+
+  function renderCrawledPagesResult(seedPage, allPages, totalDurationMs) {
+    const isMulti = allPages.length > 1;
+    resPageTitle.textContent = isMulti ? `${seedPage.title || 'Seed Page'} (+${allPages.length - 1} linked pages)` : (seedPage.title || 'Untitled Page');
+    resPageUrl.textContent = seedPage.url;
+    resStatusBadge.textContent = `${allPages.length} Pages OK`;
+    resStatusBadge.className = 'badge badge-success';
+    resLatencyBadge.textContent = `${(totalDurationMs / 1000).toFixed(1)} s`;
+    resPageTypeBadge.textContent = isMulti ? `${allPages.length} Pages Crawled` : (seedPage.pageTypeLabel || 'Standard Page');
+
+    // Aggregate metrics
+    let totalWords = 0;
+    let totalHeadings = 0;
+    let totalLinks = 0;
+    let totalImages = 0;
+    let totalContacts = 0;
+
+    allPages.forEach(p => {
+      totalWords += p.wordCount || 0;
+      totalHeadings += p.headings?.list?.length || 0;
+      totalLinks += (p.links?.internal?.length || 0) + (p.links?.external?.length || 0);
+      totalImages += p.images?.length || 0;
+      totalContacts += (p.contactInfo?.emails?.length || 0) + (p.contactInfo?.phones?.length || 0);
+    });
+
+    resWordCount.textContent = totalWords.toLocaleString();
+    resHeadingsCount.textContent = `${totalHeadings} total`;
+    resLinksCount.textContent = `${totalLinks} total`;
+    resImagesCount.textContent = totalImages.toLocaleString();
+    resContactsCount.textContent = totalContacts > 0 ? `${totalContacts} found` : 'None';
+    resLegalBadge.textContent = allPages.some(p => p.legalInfo?.hasLegalInfo) ? 'Detected' : 'None';
+
+    // Content preview body (Rendered safely via DOM nodes for AMO/CSP compliance)
+    while (previewBody.firstChild) previewBody.removeChild(previewBody.firstChild);
+
+    previewSummaryBadge.textContent = `${allPages.length} Pages • ${totalWords.toLocaleString()} Words`;
+
+    allPages.forEach((page, pageIdx) => {
+      const pageHeader = document.createElement('div');
+      pageHeader.style.padding = '6px 8px';
+      pageHeader.style.margin = pageIdx > 0 ? '10px 0 4px' : '0 0 4px';
+      pageHeader.style.backgroundColor = 'var(--bg-surface-hover)';
+      pageHeader.style.borderRadius = 'var(--radius-xs)';
+      pageHeader.style.borderLeft = '3px solid var(--accent-primary)';
+
+      const pTitle = document.createElement('strong');
+      pTitle.style.display = 'block';
+      pTitle.style.fontSize = '11.5px';
+      pTitle.style.color = 'var(--text-primary)';
+      pTitle.textContent = `Page ${pageIdx + 1}: ${page.title || 'Untitled'} (${page.wordCount || 0} words)`;
+      pageHeader.appendChild(pTitle);
+
+      const pUrl = document.createElement('span');
+      pUrl.style.display = 'block';
+      pUrl.style.fontSize = '10px';
+      pUrl.style.color = 'var(--text-muted)';
+      pUrl.textContent = page.url;
+      pageHeader.appendChild(pUrl);
+
+      previewBody.appendChild(pageHeader);
+
+      const sections = page.content?.headingSections || [];
+      if (sections.length > 0) {
+        sections.slice(0, 3).forEach((sec) => {
+          const secWrap = document.createElement('div');
+          secWrap.className = 'preview-sec-block';
+          secWrap.style.marginTop = '4px';
+
+          const headEl = document.createElement('strong');
+          headEl.style.display = 'block';
+          headEl.style.fontSize = '11px';
+          headEl.style.color = 'var(--text-primary)';
+          headEl.textContent = `[${(sec.level || 'H2').toUpperCase()}] ${sec.heading || ''}`;
+          secWrap.appendChild(headEl);
+
+          if (sec.paragraphs && sec.paragraphs.length > 0) {
+            const pEl = document.createElement('div');
+            pEl.style.paddingLeft = '8px';
+            pEl.style.fontSize = '10.5px';
+            pEl.style.color = 'var(--text-secondary)';
+            pEl.textContent = sec.paragraphs[0];
+            secWrap.appendChild(pEl);
+          }
+          previewBody.appendChild(secWrap);
+        });
+        if (sections.length > 3) {
+          const moreEl = document.createElement('div');
+          moreEl.style.paddingLeft = '8px';
+          moreEl.style.fontSize = '10px';
+          moreEl.style.color = 'var(--text-dim)';
+          moreEl.style.fontStyle = 'italic';
+          moreEl.textContent = `+ ${sections.length - 3} more heading sections in .TXT`;
+          previewBody.appendChild(moreEl);
+        }
+      } else if (page.content?.cleanText) {
+        const pEl = document.createElement('div');
+        pEl.style.paddingLeft = '8px';
+        pEl.style.fontSize = '10.5px';
+        pEl.style.color = 'var(--text-secondary)';
+        pEl.textContent = page.content.cleanText.slice(0, 180) + '...';
+        previewBody.appendChild(pEl);
+      }
+    });
+
+    singlePageResultPanel.classList.remove('hidden');
+    singlePageResultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function renderSinglePageResult(page) {
@@ -495,74 +819,90 @@ document.addEventListener('DOMContentLoaded', async () => {
   // DIRECT DOWNLOAD ACTIONS (In-Extension)
   // ==========================================
 
-  function getFileSlug(page) {
+  function getFileSlug(page, isMulti = false) {
     const host = getHostname(page.url).replace(/[^a-zA-Z0-9.-]/g, '_') || 'page';
+    if (isMulti) {
+      return `${host}_page_and_all_links`;
+    }
     const titleSlug = (page.title || 'content').toLowerCase().slice(0, 24).replace(/[^a-zA-Z0-9]/g, '_');
     return `${host}_${titleSlug}`;
   }
 
+  function getActiveExportPages() {
+    if (currentExtractedPages && currentExtractedPages.length > 0) {
+      return currentExtractedPages;
+    }
+    return extractedSinglePage ? [extractedSinglePage] : [];
+  }
+
   // 1. Download Markdown (.md)
   btnDlMarkdown.addEventListener('click', () => {
-    if (!extractedSinglePage) return;
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
     const md = Exporter.generateHeadingContentMarkdownReport({
-      siteUrl: extractedSinglePage.url,
-      pages: [extractedSinglePage]
+      siteUrl: pages[0].url,
+      pages: pages
     });
-    const filename = `${getFileSlug(extractedSinglePage)}.md`;
-    Exporter.download(filename, md, 'text/markdown');
+    const filename = `${getFileSlug(pages[0], pages.length > 1)}.md`;
+    Exporter.download(filename, md, 'text/markdown', false);
     showStatus(`Downloaded ${filename}`, 'success');
   });
 
   // 2. Download Clean Text (.txt)
   btnDlTxt.addEventListener('click', () => {
-    if (!extractedSinglePage) return;
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
     const txt = Exporter.generateHeadingContentTxtReport({
-      siteUrl: extractedSinglePage.url,
-      pages: [extractedSinglePage]
+      siteUrl: pages[0].url,
+      pages: pages
     });
-    const filename = `${getFileSlug(extractedSinglePage)}.txt`;
-    Exporter.download(filename, txt, 'text/plain');
+    const filename = `${getFileSlug(pages[0], pages.length > 1)}.txt`;
+    Exporter.download(filename, txt, 'text/plain', false);
     showStatus(`Downloaded ${filename}`, 'success');
   });
 
   // 3. Download CSV (.csv)
   btnDlCsv.addEventListener('click', () => {
-    if (!extractedSinglePage) return;
-    const csv = Exporter.generateCsvReport([extractedSinglePage]);
-    const filename = `${getFileSlug(extractedSinglePage)}.csv`;
-    Exporter.download(filename, csv, 'text/csv');
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
+    const csv = Exporter.generateCsvReport(pages);
+    const filename = `${getFileSlug(pages[0], pages.length > 1)}.csv`;
+    Exporter.download(filename, csv, 'text/csv', false);
     showStatus(`Downloaded ${filename}`, 'success');
   });
 
   // 4. Download Full JSON (.json)
   btnDlJson.addEventListener('click', () => {
-    if (!extractedSinglePage) return;
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
     const json = Exporter.generateJsonReport({
-      siteUrl: extractedSinglePage.url,
-      timestamp: extractedSinglePage.timestamp,
-      pages: [extractedSinglePage],
-      stats: { totalDiscovered: 1, successful: 1, failed: 0 }
+      siteUrl: pages[0].url,
+      timestamp: pages[0].timestamp || new Date().toISOString(),
+      pages: pages,
+      stats: { totalDiscovered: pages.length, successful: pages.length, failed: 0 }
     });
-    const filename = `${getFileSlug(extractedSinglePage)}.json`;
-    Exporter.download(filename, json, 'application/json');
+    const filename = `${getFileSlug(pages[0], pages.length > 1)}.json`;
+    Exporter.download(filename, json, 'application/json', false);
     showStatus(`Downloaded ${filename}`, 'success');
   });
 
   // 5. Download Clean HTML (.html)
   btnDlHtml.addEventListener('click', () => {
-    if (!extractedSinglePage) return;
-    const html = Exporter.generateSinglePageHtml(extractedSinglePage);
-    const filename = `${getFileSlug(extractedSinglePage)}.html`;
-    Exporter.download(filename, html, 'text/html');
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
+    const html = Exporter.generateSinglePageHtml(pages[0]);
+    const filename = `${getFileSlug(pages[0], pages.length > 1)}.html`;
+    Exporter.download(filename, html, 'text/html', false);
     showStatus(`Downloaded ${filename}`, 'success');
   });
 
   // 6. Copy to Clipboard
   btnCopyContent.addEventListener('click', async () => {
-    if (!extractedSinglePage) return;
+    const pages = getActiveExportPages();
+    if (pages.length === 0) return;
     const textToCopy = Exporter.generateHeadingContentMarkdownReport({
-      siteUrl: extractedSinglePage.url,
-      pages: [extractedSinglePage]
+      siteUrl: pages[0].url,
+      pages: pages
     });
 
     try {
@@ -587,6 +927,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (mode === 'single_page') {
       setMode('single_page');
+    } else if (mode === 'page_links') {
+      setMode('page_links');
     } else {
       setMode('multi_page');
     }

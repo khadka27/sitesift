@@ -33,7 +33,8 @@
           <div class="form-group">
             <label for="optCrawlMode" class="form-label">Default Crawl Mode</label>
             <select id="optCrawlMode" class="form-select">
-              <option value="single_page" selected>Single Page Only (Instant In-Extension Extract & Download)</option>
+              <option value="single_page">Single Page Only (Instant In-Extension Extract & Download)</option>
+              <option value="page_links" selected>Page + All Discovered Links (Instant In-Extension Extract & Download)</option>
               <option value="sitemap_and_links">Sitemap + Discovered Internal Links</option>
               <option value="sitemap">Sitemap Only</option>
               <option value="links_only">Links Crawl Only (No Sitemap)</option>
@@ -44,8 +45,8 @@
           <div class="form-group">
             <label for="optDefaultExportFormat" class="form-label">Default Extension Export Format</label>
             <select id="optDefaultExportFormat" class="form-select">
+              <option value="txt" selected>Clean Text (.txt)</option>
               <option value="markdown">Markdown (.md)</option>
-              <option value="txt">Clean Text (.txt)</option>
               <option value="csv">Spreadsheet CSV (.csv)</option>
               <option value="json">Structured JSON (.json)</option>
               <option value="html">Clean HTML (.html)</option>

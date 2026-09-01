@@ -187,21 +187,21 @@ body {
 
 .segmented-control {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 3px;
-  gap: 3px;
+  gap: 2px;
 }
 
 .segment-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
+  gap: 3px;
+  padding: 6px 4px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
   background-color: transparent;
@@ -210,6 +210,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  white-space: nowrap;
 }
 
 .segment-btn:hover {
